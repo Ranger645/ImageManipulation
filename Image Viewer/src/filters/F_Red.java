@@ -11,7 +11,7 @@ public class F_Red extends Filter{
 		for (int i = 0; i < buffer.getWidth(); i++) {
 			for (int n = 0; n < buffer.getHeight(); n++) {
 				int red = this.get_red(in, i, n);
-				buffer.setRGB(i, n, new Color(red, red, red).getRGB());
+				buffer.setRGB(i, n, new Color(red, 0, 0).getRGB());
 			}
 		}
 		return buffer;
