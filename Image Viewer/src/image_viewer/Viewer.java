@@ -21,7 +21,9 @@ public class Viewer extends JPanel {
 
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();
-	
+
+	private boolean continuous_blob_finding = false;
+
 	public PointManager points = null;
 	public ImageController gui_controller = null;
 	public String KEY = "";
@@ -42,8 +44,9 @@ public class Viewer extends JPanel {
 			points.paint_points(g, x, y);
 		}
 	}
-	
+
 	public void point_out_blobs() {
+		points.clear_points();
 		List<Point> blobs = BlobFinder.find_blob_centers(image_steps.get(image_steps.size() - 1), 75, 10);
 		for (Point blob : blobs) {
 			points.addPoint(blob);
@@ -66,7 +69,7 @@ public class Viewer extends JPanel {
 		}
 		return false;
 	}
-	
+
 	public void clear_filters() {
 		clear_filtered_images();
 		filters.clear();
@@ -78,7 +81,7 @@ public class Viewer extends JPanel {
 		while (image_steps.size() > 1)
 			image_steps.remove(image_steps.size() - 1);
 	}
-	
+
 	public void compute_next_filtered_image() {
 		image_steps.add(filters.get(filters.size() - 1).filter(image_steps.get(image_steps.size() - 1)));
 		this.gui_controller.update_filter_list();
@@ -97,27 +100,29 @@ public class Viewer extends JPanel {
 			}
 		this.gui_controller.update_filter_list();
 		this.repaint();
+		if (continuous_blob_finding)
+			this.point_out_blobs();
 	}
-	
+
 	public Filter get_filter(int index) {
 		return filters.get(index);
 	}
 
 	public void add_filter(Filter f) {
 		filters.add(f);
-		this.compute_next_filtered_image();
+		this.compute_filters();
 	}
-	
+
 	public void add_filter(Filter f, int index) {
 		filters.add(index, f);
 		this.compute_filters();
 	}
-	
+
 	public void remove_filter(int index) {
 		this.filters.remove(index);
 		this.compute_filters();
 	}
-	
+
 	public void close() {
 		filters.clear();
 		image_steps.clear();

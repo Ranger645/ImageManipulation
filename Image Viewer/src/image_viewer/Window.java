@@ -16,7 +16,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
+import batch.BatchCountExecution;
+import filters.F_Combination;
+import filters.Filter;
 import filters.FilterManager;
 
 public class Window extends JFrame {
@@ -97,9 +102,21 @@ public class Window extends JFrame {
 				image_viewers.get(tabs.getSelectedIndex()).repaint();
 			}
 		});
+		JMenuItem batch_count_res = new JMenuItem("Batch Count res/");
+		batch_count_res.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BatchCountExecution exec = new BatchCountExecution("res/", "temp/out.csv");
+				Viewer open_viewer = image_viewers.get(tabs.getSelectedIndex());
+				Filter all = new F_Combination(open_viewer.get_filters());
+				exec.execute(all, 75, 10);
+			}
+		});
 		algo_menu.add(blob_count);
 		algo_menu.addSeparator();
 		algo_menu.add(clear_count);
+		algo_menu.addSeparator();
+		algo_menu.add(batch_count_res);
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
@@ -109,6 +126,15 @@ public class Window extends JFrame {
 		gui_filter_managers = new JPanel();
 		gui_filter_managers.setLayout(new CardLayout());
 		gui_filter_managers.setMaximumSize(new Dimension(300, 100000));
+
+		tabs.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (tabs.getSelectedComponent() != null)
+					((CardLayout) gui_filter_managers.getLayout()).show(gui_filter_managers,
+							((Viewer) tabs.getSelectedComponent()).KEY);
+			}
+		});
 
 		Box container = Box.createHorizontalBox();
 		container.add(gui_filter_managers);
@@ -136,7 +162,7 @@ public class Window extends JFrame {
 			// show the image controller that was just added.
 			gui_filter_managers.add(image_viewer.gui_controller, image_viewer.KEY);
 			((CardLayout) gui_filter_managers.getLayout()).show(gui_filter_managers, image_viewer.KEY);
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

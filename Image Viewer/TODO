@@ -1,0 +1,20 @@
+
+Purpose: The original purpose of this project was to develop a 
+	batch cell counter for counting 'blobs' in various images.
+	It allows the user to create an image filter line and specify
+	blob count parameters for automated blob counting in images.
+
+TODO for the Image Viewer
+
+1. Create batch operations menu
+	a. Add command for counting cells in all files with the given
+		filter and blob count params.
+	b. store blob counts neatly in a csv file.
+2. Research what commands need to be done on the raw rd2 files in
+	imageJ so you know what to do
+3. Write a script that can convert folder of rd2 files and perform
+	proper operations on them from (2) and store them in a target
+	folder.
+4. Add support for this script to be called in this project.
+5. Make sure project contains all resources for operating imageJ in
+	its root directory.
