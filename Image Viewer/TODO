@@ -10,9 +10,9 @@ TODO for the Image Viewer
 	a. Add command for counting cells in all files with the given
 		filter and blob count params.
 	b. store blob counts neatly in a csv file.
-2. Research what commands need to be done on the raw rd2 files in
+2. Research what commands need to be done on the raw nd2 files in
 	imageJ so you know what to do
-3. Write a script that can convert folder of rd2 files and perform
+3. Write a script that can convert folder of nd2 files and perform
 	proper operations on them from (2) and store them in a target
 	folder.
 4. Add support for this script to be called in this project.

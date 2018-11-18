@@ -56,9 +56,11 @@ public class Viewer extends JPanel {
 
 	public boolean set_image(String path) throws IOException {
 		File image_file = new File(path);
+		return this.set_image(image_file);
+	}
+	
+	public boolean set_image(File image_file) throws IOException {
 		if (image_file.exists()) {
-			System.out.println("Setting image to " + path);
-
 			// Loading the image:
 			BufferedImage image = ImageIO.read(image_file);
 			image_steps.clear();

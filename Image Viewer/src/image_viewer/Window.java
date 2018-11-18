@@ -4,11 +4,13 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Box;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -23,6 +25,7 @@ import batch.BatchCountExecution;
 import filters.F_Combination;
 import filters.Filter;
 import filters.FilterManager;
+import tools.ImageConverter;
 
 public class Window extends JFrame {
 
@@ -31,11 +34,13 @@ public class Window extends JFrame {
 	private List<Viewer> image_viewers = new ArrayList<>();
 	private JTabbedPane tabs = new JTabbedPane();
 	private JPanel gui_filter_managers = null;
+	private Window self = null;
 
 	public FilterManager filter_manager = null;
 
 	public Window() {
 		super();
+		this.self = this;
 		this.setSize(1000, 700);
 		this.setTitle(TITLE);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,7 +55,14 @@ public class Window extends JFrame {
 		openoption.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				add_image();
+				open_image();
+			}
+		});
+		JMenuItem opennd2option = new JMenuItem("Open nd2");
+		opennd2option.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				import_nd2();
 			}
 		});
 		JMenuItem closeoption = new JMenuItem("Close");
@@ -61,6 +73,7 @@ public class Window extends JFrame {
 			}
 		});
 		file_menu.add(openoption);
+		file_menu.add(opennd2option);
 		file_menu.addSeparator();
 		file_menu.add(closeoption);
 
@@ -112,11 +125,35 @@ public class Window extends JFrame {
 				exec.execute(all, 75, 10);
 			}
 		});
+		JMenuItem batch_count_gen = new JMenuItem("Batch Count ...");
+		batch_count_gen.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String target_folder = "res";
+				String output_file = "res/out.csv";
+
+				JFileChooser saver = new JFileChooser();
+				saver.setCurrentDirectory(new File(target_folder));
+				saver.setSelectedFile(new File(output_file));
+				int result = saver.showSaveDialog(self);
+				File f = saver.getSelectedFile();
+				if (result != saver.CANCEL_OPTION) {
+					target_folder = f.getParentFile().getAbsolutePath();
+					output_file = target_folder + "/" + f.getName();
+
+					BatchCountExecution exec = new BatchCountExecution(target_folder, output_file);
+					Viewer open_viewer = image_viewers.get(tabs.getSelectedIndex());
+					Filter all = new F_Combination(open_viewer.get_filters());
+					exec.execute(all, 75, 10);
+				}
+			}
+		});
 		algo_menu.add(blob_count);
 		algo_menu.addSeparator();
 		algo_menu.add(clear_count);
 		algo_menu.addSeparator();
 		algo_menu.add(batch_count_res);
+		algo_menu.add(batch_count_gen);
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
@@ -144,29 +181,65 @@ public class Window extends JFrame {
 		this.setVisible(true);
 	}
 
-	public void add_image() {
+	public void import_nd2() {
 		String path = "res/";
+		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
+		
+		ImageConverter.nd2_split(new File(path + name));
+		open_all_files("temp");
+	}
 
-		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_4.png");
-		Viewer image_viewer = new Viewer(name + tabs.getTabCount());
-
-		path += name;
+	/**
+	 * Opens unique viewers in this window for all the valid image files in the
+	 * given directory path.
+	 * 
+	 * @param path - the string representation of the directory to open all the
+	 *             images inside of.
+	 */
+	public void open_all_files(String path) {
+		File directory = new File(path);
+		File[] to_open = directory.listFiles();
+		for (int i = to_open.length - 1; i >= 0; i--) {
+			String file_name = to_open[i].getName();
+			if (file_name.contains(".jpg") || file_name.contains(".png")) {
+				Viewer new_viewer = new Viewer(file_name.substring(0, file_name.indexOf(".")));
+				this.add_viewer(new_viewer, to_open[i]);
+			}
+		}
+	}
+	
+	protected void add_viewer(Viewer viewer, File image_file) {
 		try {
-			if (!image_viewer.set_image(path))
+			if (!viewer.set_image(image_file))
 				throw new IOException();
-			image_viewers.add(image_viewer);
-			tabs.addTab(name, image_viewer);
-			image_viewer.gui_controller.init_window();
+			image_viewers.add(viewer);
+			tabs.addTab(viewer.KEY, viewer);
+			viewer.gui_controller.init_window();
 
 			// Adding the GUI controller to the card layout and setting the card layout to
 			// show the image controller that was just added.
-			gui_filter_managers.add(image_viewer.gui_controller, image_viewer.KEY);
-			((CardLayout) gui_filter_managers.getLayout()).show(gui_filter_managers, image_viewer.KEY);
+			gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
+			((CardLayout) gui_filter_managers.getLayout()).show(gui_filter_managers, viewer.KEY);
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		this.repaint();
+	}
+
+	public void open_image() {
+		String path = "res/";
+
+		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
+		Viewer image_viewer = new Viewer(name + tabs.getTabCount());
+
+		path += name;
+		this.add_viewer(image_viewer, new File(path));
+	}
+
+	public void close_all_images() {
+		while (tabs.getTabCount() > 0)
+			this.close_current_image();
 	}
 
 	public void close_current_image() {
@@ -179,8 +252,12 @@ public class Window extends JFrame {
 		this.repaint();
 	}
 
+	public Viewer get_selected_viewer() {
+		return image_viewers.get(tabs.getSelectedIndex());
+	}
+
 	public void add_filter(String name) {
-		image_viewers.get(tabs.getSelectedIndex()).add_filter(filter_manager.get_filter(name));
+		this.get_selected_viewer().add_filter(filter_manager.get_filter(name));
 		this.repaint();
 	}
 
