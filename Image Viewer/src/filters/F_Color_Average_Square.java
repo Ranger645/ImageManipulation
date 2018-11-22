@@ -14,8 +14,9 @@ public class F_Color_Average_Square extends Filter {
 
 	private final int RADIUS;
 
-	public F_Color_Average_Square(int pixel_average_radius) {
-		RADIUS = pixel_average_radius;
+	public F_Color_Average_Square() {
+		super();
+		RADIUS = 1;
 	}
 
 	public BufferedImage filter_slow(BufferedImage in) {
@@ -92,6 +93,11 @@ public class F_Color_Average_Square extends Filter {
 				}
 		}
 		return buffer;
+	}
+
+	@Override
+	public Filter clone() {
+		return new F_Color_Average_Square();
 	}
 
 }

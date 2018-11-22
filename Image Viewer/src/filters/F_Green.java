@@ -17,4 +17,9 @@ public class F_Green extends Filter {
 		return buffer;
 	}
 
+	@Override
+	public Filter clone() {
+		return new F_Green();
+	}
+
 }

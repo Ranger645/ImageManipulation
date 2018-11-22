@@ -51,7 +51,6 @@ public class Viewer extends JPanel {
 		for (Point blob : blobs) {
 			points.addPoint(blob);
 		}
-		this.repaint();
 	}
 
 	public boolean set_image(String path) throws IOException {
@@ -94,16 +93,16 @@ public class Viewer extends JPanel {
 	 * Re-calculates the image_steps array list based on the first image in the list
 	 * and the list of filters.
 	 */
-	private void compute_filters() {
+	public void compute_filters() {
 		this.clear_filtered_images();
 		if (image_steps.size() > 0)
 			for (int i = 0; i < filters.size(); i++) {
 				image_steps.add(filters.get(i).filter(image_steps.get(i)));
 			}
 		this.gui_controller.update_filter_list();
-		this.repaint();
 		if (continuous_blob_finding)
 			this.point_out_blobs();
+		this.repaint();
 	}
 
 	public Filter get_filter(int index) {

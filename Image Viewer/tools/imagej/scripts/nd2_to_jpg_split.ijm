@@ -5,7 +5,6 @@
 
 arg = getArgument();
 run("Bio-Formats Windowless Importer", "open=[arg]");
-run("Make Composite");
 run("Split Channels");
 
 // we need to know only how many frames there are

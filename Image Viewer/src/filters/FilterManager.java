@@ -16,14 +16,14 @@ public  class FilterManager {
 		filters.put("Blue Only", new F_Blue());
 		filters.put("Red Only", new F_Red());
 		filters.put("Green Only", new F_Green());
-		for (int i = 1; i <= 5; i++)
-			filters.put("Square-Average-" + i, new F_Color_Average_Square(i));
+		filters.put("Square-Average", new F_Color_Average_Square());
 		filters.put("Contrast Increase", new F_Contrast_Increase(128));
 		filters.put("Color Inversion", new F_Invert());
+		filters.put("Multiply", new F_Multiply());
 	}
 	
 	public Filter get_filter(String name) {
-		return filters.get(name);
+		return (Filter) filters.get(name).clone();
 	}
 	
 	public String[] get_filter_names() {

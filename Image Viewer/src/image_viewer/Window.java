@@ -99,6 +99,14 @@ public class Window extends JFrame {
 		});
 		filter_menu.add(clear_filters_item);
 
+		JMenu image_menu = new JMenu("Image");
+		JMenuItem split_rgb_option = new JMenuItem("Split RGB");
+		JMenuItem join_images_option = new JMenuItem("Create New Overlay");
+		JMenuItem merge_images_option = new JMenuItem("Merge Images");
+		image_menu.add(split_rgb_option); // splits image into 3 images for RGB
+		image_menu.add(join_images_option); // creates new image of selected
+		image_menu.add(merge_images_option); // merges images into one new image.
+
 		JMenu algo_menu = new JMenu("Counting");
 		JMenuItem blob_count = new JMenuItem("Count Blobs");
 		blob_count.addActionListener(new ActionListener() {
@@ -157,12 +165,13 @@ public class Window extends JFrame {
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
+		menu.add(image_menu);
 		menu.add(algo_menu);
 		this.setJMenuBar(menu);
 
 		gui_filter_managers = new JPanel();
 		gui_filter_managers.setLayout(new CardLayout());
-		gui_filter_managers.setMaximumSize(new Dimension(300, 100000));
+		gui_filter_managers.setMaximumSize(new Dimension(800, 100000));
 
 		tabs.addChangeListener(new ChangeListener() {
 			@Override
@@ -184,7 +193,7 @@ public class Window extends JFrame {
 	public void import_nd2() {
 		String path = "res/";
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
-		
+
 		ImageConverter.nd2_split(new File(path + name));
 		open_all_files("temp");
 	}
@@ -207,7 +216,7 @@ public class Window extends JFrame {
 			}
 		}
 	}
-	
+
 	protected void add_viewer(Viewer viewer, File image_file) {
 		try {
 			if (!viewer.set_image(image_file))
@@ -230,7 +239,7 @@ public class Window extends JFrame {
 	public void open_image() {
 		String path = "res/";
 
-		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
+		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_4.png");
 		Viewer image_viewer = new Viewer(name + tabs.getTabCount());
 
 		path += name;
