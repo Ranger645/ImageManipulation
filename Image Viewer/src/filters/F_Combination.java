@@ -28,4 +28,12 @@ public class F_Combination extends Filter {
 		return image;
 	}
 
+	@Override
+	public Filter clone() {
+		List<Filter> filter_copies = new ArrayList<Filter>();
+		for (Filter f : filters)
+			filter_copies.add(f.clone());
+		return new F_Combination(filter_copies);
+	}
+
 }

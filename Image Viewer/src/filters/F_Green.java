@@ -11,10 +11,15 @@ public class F_Green extends Filter {
 		for (int i = 0; i < buffer.getWidth(); i++) {
 			for (int n = 0; n < buffer.getHeight(); n++) {
 				int green = this.get_green(in, i, n);
-				buffer.setRGB(i, n, new Color(green, green, green).getRGB());
+				buffer.setRGB(i, n, new Color(0, green, 0).getRGB());
 			}
 		}
 		return buffer;
+	}
+
+	@Override
+	public Filter clone() {
+		return new F_Green();
 	}
 
 }

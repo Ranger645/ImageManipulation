@@ -1,5 +1,6 @@
 package image_viewer;
 
+import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -7,15 +8,24 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import filters.F_Combination;
 import filters.Filter;
@@ -29,12 +39,20 @@ public class ImageController extends JPanel {
 	private JList<String> filter_list = null;
 
 	private JTabbedPane control_tabs = new JTabbedPane();
+	private JPanel filter_control_panel = null;
+	private int last_config_index = 0;
+	
+	private JSpinner blob_size_control;
+	private JTextField blob_grey_thresh_text;
+	private JSlider blob_grey_thresh_slider;
+	private JCheckBox continuous_count_toggle;
 
-	private static final String CONTROL = "CONTROL";
-	private static final String FILTER = "FILTER";
+	private static final String CONTROL = "Control";
+	private static final String FILTER = "Filter";
 
 	public ImageController(Viewer image) {
 		this.image = image;
+		this.setLayout(new GridBagLayout());
 
 		Box control_box = Box.createVerticalBox();
 		JButton btn_close_image = new JButton("Close Image");
@@ -44,6 +62,52 @@ public class ImageController extends JPanel {
 				window.close_current_image();
 			}
 		});
+		blob_grey_thresh_slider = new JSlider(5, 255, 100);
+		blob_grey_thresh_slider.setPaintTicks(true);
+		blob_grey_thresh_slider.setMajorTickSpacing(50);
+		blob_grey_thresh_slider.setMinorTickSpacing(10);
+		blob_grey_thresh_slider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				blob_grey_thresh_text.setText("" + blob_grey_thresh_slider.getValue());
+				image.point_out_blobs();
+			}
+		});
+		blob_grey_thresh_text = new JTextField("100", 5);
+		blob_grey_thresh_text.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				blob_grey_thresh_slider.setValue(Integer.parseInt(blob_grey_thresh_text.getText()));
+				image.point_out_blobs();
+			}
+		});
+		blob_size_control = new JSpinner();
+		blob_size_control.setValue(15);
+		blob_size_control.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				image.point_out_blobs();
+			}
+		});
+		continuous_count_toggle = new JCheckBox("Continuous Count", true);
+		continuous_count_toggle.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.set_continuous_blob_finding(continuous_count_toggle.isSelected());
+				if (! continuous_count_toggle.isSelected())
+					image.points.clear_points();
+				else
+					image.point_out_blobs();
+				image.repaint();
+			}
+		});
+		Box count_control_box = Box.createVerticalBox();
+		count_control_box.add(blob_grey_thresh_slider);
+		count_control_box.add(blob_grey_thresh_text);
+		count_control_box.add(blob_size_control);
+		count_control_box.add(continuous_count_toggle);
+		count_control_box.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
+		control_box.add(count_control_box);
 		control_box.add(btn_close_image);
 		JPanel control_panel = new JPanel();
 		control_panel.add(control_box);
@@ -56,11 +120,18 @@ public class ImageController extends JPanel {
 		filter_list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		filter_list.setLayoutOrientation(JList.VERTICAL);
 		filter_list.setPrototypeCellValue("#############################################################");
-		filter_list.setVisibleRowCount(30);
+		filter_list.setVisibleRowCount(10);
 		filter_list.setFixedCellWidth(200);
+		filter_list.addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				// Whenever a new filter is selected this event will fire.
+				// For whatever reason it fires twice though...
+				change_filter_config_panel(filter_list.getSelectedIndex());
+			}
+		});
 		JScrollPane list_scroller = new JScrollPane(filter_list);
-
-		Utilites.addGridComponent(filter_panel, list_scroller, 0, 0, 1, 4, 0, 0, GridBagConstraints.CENTER,
+		Utilites.addGridComponent(filter_panel, list_scroller, 0, 0, 1, 4, 0, 0, GridBagConstraints.NORTH,
 				GridBagConstraints.BOTH);
 
 		JButton btn_remove_filter = new JButton("Remove Filter");
@@ -72,9 +143,9 @@ public class ImageController extends JPanel {
 					image.remove_filter(index);
 					if (model.size() > 0) {
 						index -= 1;
-						if (index >= 0)
+						if (index > 0)
 							filter_list.setSelectedIndex(index);
-						else 
+						else
 							filter_list.setSelectedIndex(0);
 					}
 				}
@@ -100,17 +171,45 @@ public class ImageController extends JPanel {
 				}
 			}
 		});
-		JButton btn_edit_filter = new JButton("Edit Filter");
-		Utilites.addGridComponent(filter_panel, btn_edit_filter, 0, 4, 1, 1, 0, 0, GridBagConstraints.CENTER,
+		JButton btn_update_filters = new JButton("Recalculate");
+		btn_update_filters.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.compute_filters();
+			}
+		});
+		Utilites.addGridComponent(filter_panel, btn_combine_filters, 0, 5, 1, 1, 0, 0, GridBagConstraints.NORTH,
 				GridBagConstraints.BOTH);
-		Utilites.addGridComponent(filter_panel, btn_combine_filters, 0, 5, 1, 1, 0, 0, GridBagConstraints.CENTER,
+		Utilites.addGridComponent(filter_panel, btn_remove_filter, 0, 6, 1, 1, 0, 0, GridBagConstraints.NORTH,
 				GridBagConstraints.BOTH);
-		Utilites.addGridComponent(filter_panel, btn_remove_filter, 0, 6, 1, 1, 0, 0, GridBagConstraints.CENTER,
+		Utilites.addGridComponent(filter_panel, btn_update_filters, 0, 7, 1, 1, 0, 0, GridBagConstraints.NORTH,
 				GridBagConstraints.BOTH);
 
-		control_tabs.addTab(CONTROL, control_panel);
+		filter_control_panel = new JPanel(new CardLayout());
+		Utilites.addGridComponent(filter_panel, filter_control_panel, 0, 8, 1, 7, 1.0, 1.0, GridBagConstraints.SOUTH,
+				GridBagConstraints.BOTH);
+
 		control_tabs.addTab(FILTER, filter_panel);
-		this.add(control_tabs);
+		control_tabs.addTab(CONTROL, control_panel);
+		Utilites.addGridComponent(this, control_tabs, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.BOTH);
+	}
+	
+	public int get_grey_thresh() {
+		return this.blob_grey_thresh_slider.getValue();
+	}
+	
+	public int get_blob_size() {
+		return (int) this.blob_size_control.getValue();
+	}
+
+	public void change_filter_config_panel(int index) {
+		if (index >= 0) {
+			this.last_config_index = index;
+			CardLayout cl = (CardLayout) filter_control_panel.getLayout();
+			cl.show(filter_control_panel, "" + index);
+			this.repaint();
+		}
 	}
 
 	public void init_window() {
@@ -120,14 +219,23 @@ public class ImageController extends JPanel {
 	public void update_filter_list() {
 		List<Filter> fil = image.get_filters();
 		model.clear();
-		for (Filter f : fil)
-			model.addElement(this.get_filter_name(f));
+		filter_control_panel.removeAll();
+		filter_control_panel.setLayout(new CardLayout());
+		for (int i = 0; i < fil.size(); i++) {
+			model.addElement(this.get_filter_name(fil.get(i)));
+			filter_control_panel.add(fil.get(i).get_config_panel(), "" + i);
+		}
+		if (model.size() > 0 && last_config_index < model.size()) {
+			CardLayout cl = (CardLayout) filter_control_panel.getLayout();
+			cl.show(filter_control_panel, "" + last_config_index);
+		}
+		this.repaint();
 	}
 
 	private String get_filter_name(Filter f) {
 		String[] names = this.window.filter_manager.get_filter_names();
 		for (String name : names)
-			if (this.window.filter_manager.get_filter(name) == f)
+			if (this.window.filter_manager.get_filter(name).getClass().getName() == f.getClass().getName())
 				return name;
 		return "NULL";
 	}

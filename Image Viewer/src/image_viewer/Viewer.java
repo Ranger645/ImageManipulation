@@ -21,7 +21,10 @@ public class Viewer extends JPanel {
 
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();
-	
+
+	private boolean continuous_blob_finding = true;
+	public int zoom_percentage = 100;
+
 	public PointManager points = null;
 	public ImageController gui_controller = null;
 	public String KEY = "";
@@ -30,21 +33,30 @@ public class Viewer extends JPanel {
 		super();
 		points = new PointManager();
 		gui_controller = new ImageController(this);
+		this.addMouseWheelListener(new ImageZoom(this));
 		this.KEY = key;
 	}
 
 	public void paint(Graphics g) {
 		if (image_steps.size() > 0) {
 			BufferedImage to_draw = image_steps.get(image_steps.size() - 1);
-			int x = this.getWidth() / 2 - to_draw.getWidth() / 2;
-			int y = this.getHeight() / 2 - to_draw.getHeight() / 2;
-			g.drawImage(to_draw, x, y, null);
-			points.paint_points(g, x, y);
+			
+			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
+			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
+			
+			int x = this.getWidth() / 2 - width / 2;
+			int y = this.getHeight() / 2 - height / 2;
+			g.drawImage(to_draw, x, y, width, height, null);
+			points.paint_points(g, x, y, zoom_percentage);
 		}
 	}
-	
+
 	public void point_out_blobs() {
-		List<Point> blobs = BlobFinder.find_blob_centers(image_steps.get(image_steps.size() - 1), 75, 10);
+		points.clear_points();
+		List<Point> blobs = BlobFinder.find_blob_centers(image_steps.get(image_steps.size() - 1),
+				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(), 10);
+		System.out.printf("Counted %d blobs with a threshhold of %d and a size of %d.\n", blobs.size(),
+				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size());
 		for (Point blob : blobs) {
 			points.addPoint(blob);
 		}
@@ -53,9 +65,11 @@ public class Viewer extends JPanel {
 
 	public boolean set_image(String path) throws IOException {
 		File image_file = new File(path);
-		if (image_file.exists()) {
-			System.out.println("Setting image to " + path);
+		return this.set_image(image_file);
+	}
 
+	public boolean set_image(File image_file) throws IOException {
+		if (image_file.exists()) {
 			// Loading the image:
 			BufferedImage image = ImageIO.read(image_file);
 			image_steps.clear();
@@ -66,7 +80,7 @@ public class Viewer extends JPanel {
 		}
 		return false;
 	}
-	
+
 	public void clear_filters() {
 		clear_filtered_images();
 		filters.clear();
@@ -78,7 +92,7 @@ public class Viewer extends JPanel {
 		while (image_steps.size() > 1)
 			image_steps.remove(image_steps.size() - 1);
 	}
-	
+
 	public void compute_next_filtered_image() {
 		image_steps.add(filters.get(filters.size() - 1).filter(image_steps.get(image_steps.size() - 1)));
 		this.gui_controller.update_filter_list();
@@ -89,35 +103,37 @@ public class Viewer extends JPanel {
 	 * Re-calculates the image_steps array list based on the first image in the list
 	 * and the list of filters.
 	 */
-	private void compute_filters() {
+	public void compute_filters() {
 		this.clear_filtered_images();
 		if (image_steps.size() > 0)
 			for (int i = 0; i < filters.size(); i++) {
 				image_steps.add(filters.get(i).filter(image_steps.get(i)));
 			}
 		this.gui_controller.update_filter_list();
+		if (continuous_blob_finding)
+			this.point_out_blobs();
 		this.repaint();
 	}
-	
+
 	public Filter get_filter(int index) {
 		return filters.get(index);
 	}
 
 	public void add_filter(Filter f) {
 		filters.add(f);
-		this.compute_next_filtered_image();
+		this.compute_filters();
 	}
-	
+
 	public void add_filter(Filter f, int index) {
 		filters.add(index, f);
 		this.compute_filters();
 	}
-	
+
 	public void remove_filter(int index) {
 		this.filters.remove(index);
 		this.compute_filters();
 	}
-	
+
 	public void close() {
 		filters.clear();
 		image_steps.clear();
@@ -129,6 +145,10 @@ public class Viewer extends JPanel {
 
 	public List<Filter> get_filters() {
 		return this.filters;
+	}
+	
+	public void set_continuous_blob_finding(boolean finding) {
+		this.continuous_blob_finding = finding;
 	}
 
 }

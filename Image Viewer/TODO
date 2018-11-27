@@ -1,0 +1,19 @@
+
+Purpose: The original purpose of this project was to develop a 
+	batch cell counter for counting 'blobs' in various images.
+	It allows the user to create an image filter line and specify
+	blob count parameters for automated blob counting in images.
+
+TODO for the Image Viewer
+
+1. Allow filter chains and counting parameters to be saved in text 
+	files and loaded.
+2. Allow execution of filter/counting files automatically.
+3. Combine auto filter/counting with nd2 file opening in batch mode
+	to create large scale scripting.
+4. Complete the Image Menu functionality.
+	a. Split: creates 3 new images that are the red, green, and blue 
+		layers of the original
+	b. Join: Creates a new image with all the selected images piled
+		on top of one another.
+	c. Merge: Same as join except closes the source images.
