@@ -60,7 +60,7 @@ public class BatchCountExecution {
 			BackgroundImage image = new BackgroundImage(file);
 			image.filter(operation);
 			List<Point> count_points = algos.BlobFinder.find_blob_centers(image.getImage(), grey_thresh,
-					blob_pixel_size);
+					blob_pixel_size, 2);
 			counts.put(file.getName(), count_points.size());
 		}
 		

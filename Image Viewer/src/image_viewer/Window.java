@@ -2,6 +2,8 @@ package image_viewer;
 
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -62,7 +64,12 @@ public class Window extends JFrame {
 		opennd2option.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				import_nd2();
+				Thread t = new Thread() {
+					public void run() {
+						import_nd2();
+					}
+				};
+				t.start();
 			}
 		});
 		JMenuItem closeoption = new JMenuItem("Close");
@@ -100,9 +107,11 @@ public class Window extends JFrame {
 		filter_menu.add(clear_filters_item);
 
 		JMenu image_menu = new JMenu("Image");
+		JMenuItem duplicate_image_option = new JMenuItem("Duplicate Image");
 		JMenuItem split_rgb_option = new JMenuItem("Split RGB");
 		JMenuItem join_images_option = new JMenuItem("Create New Overlay");
 		JMenuItem merge_images_option = new JMenuItem("Merge Images");
+		image_menu.add(duplicate_image_option); 
 		image_menu.add(split_rgb_option); // splits image into 3 images for RGB
 		image_menu.add(join_images_option); // creates new image of selected
 		image_menu.add(merge_images_option); // merges images into one new image.
@@ -182,11 +191,17 @@ public class Window extends JFrame {
 			}
 		});
 
-		Box container = Box.createHorizontalBox();
-		container.add(gui_filter_managers);
-		container.add(tabs);
-		this.add(container);
+		JPanel view_panel = new JPanel();
+		view_panel.setLayout(new GridBagLayout());
+		Utilites.addGridComponent(view_panel, gui_filter_managers, 0, 0, 1, 6, 0.15, 1, GridBagConstraints.CENTER,
+				GridBagConstraints.BOTH);
+		Utilites.addGridComponent(view_panel, tabs, 1, 0, 1, 5, 1, 1, GridBagConstraints.NORTH,
+				GridBagConstraints.BOTH);
+		WorkingBar.get_bar().setPreferredSize(new Dimension(100000, 25));
+		Utilites.addGridComponent(view_panel, WorkingBar.get_bar(), 1, 5, 1, 1, 0, 0.025, GridBagConstraints.SOUTH,
+				GridBagConstraints.BOTH);
 
+		this.add(view_panel);
 		this.setVisible(true);
 	}
 
@@ -239,7 +254,7 @@ public class Window extends JFrame {
 	public void open_image() {
 		String path = "res/";
 
-		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_4.png");
+		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_5.png");
 		Viewer image_viewer = new Viewer(name + tabs.getTabCount());
 
 		path += name;

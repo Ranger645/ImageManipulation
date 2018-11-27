@@ -36,7 +36,7 @@ public class F_Multiply extends Filter {
 				int blue = this.get_blue(in, i, n);
 
 				buffer.setRGB(i, n,
-						new Color((int) (this.red * red), (int) (this.green * green), (int) (this.blue * blue)).getRGB());
+						new Color((int) Math.min((this.red * red), 255), (int) Math.min((this.green * green), 255), (int) Math.min((this.blue * blue), 255)).getRGB());
 			}
 		}
 		return buffer;
@@ -48,7 +48,7 @@ public class F_Multiply extends Filter {
 		panel.setLayout(new GridBagLayout());
 
 		Box red_box = Box.createVerticalBox();
-		JSlider red_slider = new JSlider(0, 100, 100);
+		JSlider red_slider = new JSlider(0, 200, 100);
 		JTextField red_text = new JTextField("1.0", 5);
 		red_text.setHorizontalAlignment(JTextField.CENTER);
 		red_text.addActionListener(new ActionListener() {
@@ -75,7 +75,7 @@ public class F_Multiply extends Filter {
 				GridBagConstraints.VERTICAL);
 		
 		Box green_box = Box.createVerticalBox();
-		JSlider green_slider = new JSlider(0, 100, 100);
+		JSlider green_slider = new JSlider(0, 200, 100);
 		JTextField green_text = new JTextField("1.0", 5);
 		green_text.setHorizontalAlignment(JTextField.CENTER);
 		green_text.addActionListener(new ActionListener() {
@@ -102,7 +102,7 @@ public class F_Multiply extends Filter {
 				GridBagConstraints.VERTICAL);
 		
 		Box blue_box = Box.createVerticalBox();
-		JSlider blue_slider = new JSlider(0, 100, 100);
+		JSlider blue_slider = new JSlider(0, 200, 100);
 		JTextField blue_text = new JTextField("1.0", 5);
 		blue_text.setHorizontalAlignment(JTextField.CENTER);
 		blue_text.addActionListener(new ActionListener() {

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import image_viewer.WorkingBar;
+
 public class ImageConverter {
 	/**
 	 * This class is responsible for converting any given image file type into any
@@ -23,6 +25,7 @@ public class ImageConverter {
 	 * @param source        - the file to start with
 	 */
 	public static int nd2_split(File source) {
+		WorkingBar.start_working();
 		File root = new File("tools/imagej/scripts/nd2_to_jpg_split.ijm");
 		
 		String[] command = new String[3];
@@ -65,9 +68,10 @@ public class ImageConverter {
 
 		} catch (IOException e) {
 			e.printStackTrace();
+			WorkingBar.stop_working();
 			return -2;
 		}
-
+		WorkingBar.stop_working();
 		return 1;
 	}
 

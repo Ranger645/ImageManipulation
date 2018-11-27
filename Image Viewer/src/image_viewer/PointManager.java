@@ -14,14 +14,15 @@ public class PointManager {
 		
 	}
 	
-	public void paint_points(Graphics g, int dx, int dy) {
+	public void paint_points(Graphics g, int dx, int dy, int zoom) {
 		// Draws the list of points on the given graphics object with the given x and y 
 		// as the origin of all the points in the points array.
 		int radius = 3;
 		g.setColor(Color.CYAN);
+		double multiplier = zoom / 100.0;
 		for (Point p : points) {
-			int x = dx + (int) (p.getX());
-			int y = dy + (int) (p.getY());
+			int x = dx + (int) (p.getX() * multiplier);
+			int y = dy + (int) (p.getY() * multiplier);
 			g.drawLine(x - radius, y, x + radius, y);
 			g.drawLine(x, y - radius, x , y + radius);
 		}

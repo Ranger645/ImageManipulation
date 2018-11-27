@@ -20,6 +20,7 @@ public  class FilterManager {
 		filters.put("Contrast Increase", new F_Contrast_Increase(128));
 		filters.put("Color Inversion", new F_Invert());
 		filters.put("Multiply", new F_Multiply());
+		filters.put("Greyscale", new F_Make_Greyscale());
 	}
 	
 	public Filter get_filter(String name) {

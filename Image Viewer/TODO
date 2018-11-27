@@ -6,13 +6,13 @@ Purpose: The original purpose of this project was to develop a
 
 TODO for the Image Viewer
 
-*. Make sure project contains all resources for operating imageJ in
-	its root directory.
-6. Add a progress bar at the bottom right of the window to be used
-	by any process.
+4. Make Counting more accurate.
+5. Allow filter chains to be saved in text files and loaded.
 7. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original
 	b. Join: Creates a new image with all the selected images piled
 		on top of one another.
 	c. Merge: Same as join except closes the source images.
+8. Add a user customization JSpinner to the color average square
+	filter.
