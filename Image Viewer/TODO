@@ -6,13 +6,14 @@ Purpose: The original purpose of this project was to develop a
 
 TODO for the Image Viewer
 
-4. Make Counting more accurate.
-5. Allow filter chains to be saved in text files and loaded.
-7. Complete the Image Menu functionality.
+1. Allow filter chains and counting parameters to be saved in text 
+	files and loaded.
+2. Allow execution of filter/counting files automatically.
+3. Combine auto filter/counting with nd2 file opening in batch mode
+	to create large scale scripting.
+4. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original
 	b. Join: Creates a new image with all the selected images piled
 		on top of one another.
 	c. Merge: Same as join except closes the source images.
-8. Add a user customization JSpinner to the color average square
-	filter.

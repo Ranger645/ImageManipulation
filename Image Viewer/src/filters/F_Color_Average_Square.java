@@ -1,18 +1,26 @@
 package filters;
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Queue;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import image_viewer.Utilites;
 
 public class F_Color_Average_Square extends Filter {
 	/**
-	 * Averages the colors around each pixel. The radius of the average is
-	 * given by the pixel average radius parameter passed to the constructor
-	 * higher radiuses will take more time so be wary.
+	 * Averages the colors around each pixel. The radius of the average is given by
+	 * the pixel average radius parameter passed to the constructor higher radiuses
+	 * will take more time so be wary.
 	 */
 
-	private final int RADIUS;
+	private int RADIUS;
 
 	public F_Color_Average_Square() {
 		super();
@@ -93,6 +101,24 @@ public class F_Color_Average_Square extends Filter {
 				}
 		}
 		return buffer;
+	}
+
+	@Override
+	protected JPanel build_filter_edit_panel() {
+		JPanel panel = super.build_filter_edit_panel();
+		panel.setLayout(new GridBagLayout());
+		JSpinner control = new JSpinner();
+		control.setValue(1);
+		control.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				RADIUS = (int) control.getValue();
+			}
+		});
+		control.setBorder(BorderFactory.createTitledBorder("Average Radius"));
+		Utilites.addGridComponent(panel, control, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.HORIZONTAL);
+		return panel;
 	}
 
 	@Override
