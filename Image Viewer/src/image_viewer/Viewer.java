@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 
 import algos.BlobFinder;
 import filters.Filter;
+import filters.FilterManager;
 
 public class Viewer extends JPanel {
 

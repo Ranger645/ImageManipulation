@@ -7,11 +7,15 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
-import javax.swing.Box;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -79,8 +83,52 @@ public class Window extends JFrame {
 				close_current_image();
 			}
 		});
+		JMenuItem save_filter_list = new JMenuItem("Save Filter File");
+		save_filter_list.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.showSaveDialog(self);
+				File filter_file = chooser.getSelectedFile();
+				try {
+					PrintWriter file_write = new PrintWriter(filter_file);
+					file_write.print(filter_manager.encode_filters(get_selected_viewer().get_filters()));
+					file_write.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem open_filter_list = new JMenuItem("Apply Filter File");
+		open_filter_list.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.showOpenDialog(self);
+				File filter_file = chooser.getSelectedFile();
+				try {
+					FileInputStream file_read = new FileInputStream(filter_file);
+					byte[] bytes = file_read.readAllBytes();
+					String values = new String(bytes);
+					
+					get_selected_viewer().clear_filters();
+					List<Filter> filters = filter_manager.decode_filters(values);
+					
+					for (Filter f : filters)
+						get_selected_viewer().add_filter(f);
+					
+					file_read.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		file_menu.add(openoption);
 		file_menu.add(opennd2option);
+		file_menu.add(open_filter_list);
+		file_menu.add(save_filter_list);
 		file_menu.addSeparator();
 		file_menu.add(closeoption);
 
@@ -111,7 +159,7 @@ public class Window extends JFrame {
 		JMenuItem split_rgb_option = new JMenuItem("Split RGB");
 		JMenuItem join_images_option = new JMenuItem("Create New Overlay");
 		JMenuItem merge_images_option = new JMenuItem("Merge Images");
-		image_menu.add(duplicate_image_option); 
+		image_menu.add(duplicate_image_option);
 		image_menu.add(split_rgb_option); // splits image into 3 images for RGB
 		image_menu.add(join_images_option); // creates new image of selected
 		image_menu.add(merge_images_option); // merges images into one new image.

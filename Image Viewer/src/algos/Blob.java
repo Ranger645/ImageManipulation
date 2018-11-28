@@ -44,16 +44,6 @@ public class Blob {
 		return String.format("[Blob={Size=%d;Average=(%f,%f)}]", this.points.size(), average.x, average.y);
 	}
 
-	public List<Blob> split(int pieces, int thresh, int size) {
-		// This works by returning subset blobs of this blob that are derived from the
-		// threshold and minimum pixel counts.
-		List<Blob> blob_list = new ArrayList<Blob>();
-		
-		
-		
-		return blob_list;
-	}
-
 	public static double point_triangle_area(Point a, Point b, Point c) {
 		return (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2.0;
 	}

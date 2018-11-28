@@ -21,6 +21,7 @@ import image_viewer.Utilites;
 public class F_Contrast_Increase extends Filter {
 
 	double contrast = 128; // range of -255 to 255.
+	private JSlider slider;
 
 	/**
 	 * Constructs a contrast altering filter.
@@ -62,9 +63,22 @@ public class F_Contrast_Increase extends Filter {
 	}
 
 	@Override
+	public String get_params() {
+		String params = super.get_params();
+		return params + this.contrast;
+	}
+
+	@Override
+	public void set_params(String params) {
+		super.set_params(params);
+		this.contrast = Double.parseDouble(params);
+		this.slider.setValue((int) (this.contrast * 100));
+	}
+
+	@Override
 	protected JPanel build_filter_edit_panel() {
 		JPanel panel = super.build_filter_edit_panel();
-		JSlider slider = new JSlider();
+		slider = new JSlider();
 		JTextField text = new JTextField();
 		panel.setLayout(new GridBagLayout());
 

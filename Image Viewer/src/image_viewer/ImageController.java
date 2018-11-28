@@ -215,6 +215,10 @@ public class ImageController extends JPanel {
 	public void init_window() {
 		this.window = (Window) image.getParent().getParent().getParent().getParent().getParent().getParent();
 	}
+	
+	public Window get_window() {
+		return this.window;
+	}
 
 	public void update_filter_list() {
 		List<Filter> fil = image.get_filters();
