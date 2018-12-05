@@ -2,8 +2,12 @@ package image_viewer;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +23,7 @@ import batch.BackgroundNd2Counter;
 public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	private final String TITLE = "Nd2 Batch Count Configuration";
-	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath();
+	private static String folderDefault = Window.DOWNLOADS.getAbsolutePath();
 	private static String configFileDefault = "/Users/gregfoss/git/ImageManipulation/Image Viewer/res/test.batch";
 	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "batch_counts.csv";
 	private static BatchCountConfigWindow staticWindow = null;
@@ -37,7 +41,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 			// Building the window:
 			staticWindow = new BatchCountConfigWindow(parent);
 		}
-		staticWindow.show_window();
+		staticWindow.show_window(parent);
 
 		int status = 1;
 		while ((status = staticWindow.get_status()) == 1)
@@ -50,25 +54,25 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 		if (status == 0) {
 			File count_folder = new File(staticWindow.get_folder_name());
 			File config_file = new File(staticWindow.get_config_file_name());
-			File output_file = new File(staticWindow.get_config_file_name());
+			File output_file = new File(staticWindow.get_output_file_name());
 
 			System.out.print("Got parameters, testing...");
 			if (count_folder.exists() && count_folder.isDirectory() && config_file.exists()
 					&& config_file.getName().endsWith(".batch")) {
 				String config = "";
 				System.out.println("Paramamters passed tests.");
-				
+
 				// Saving new defaults:
 				folderDefault = count_folder.getAbsolutePath();
 				configFileDefault = config_file.getAbsolutePath();
 				outputFileDefault = output_file.getAbsolutePath();
-				
+
 				try {
 					config = new String(Files.readAllBytes(config_file.toPath()));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				return new BackgroundNd2Counter(count_folder, config);
+				return new BackgroundNd2Counter(count_folder, config, output_file);
 			} else {
 				System.out.println("Parameters failed tests.");
 			}
@@ -79,7 +83,39 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 	public BatchCountConfigWindow(JFrame parent) {
 		this.parent = parent;
 		this.setTitle(this.TITLE);
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) {
+				
+			}
+			
+			@Override
+			public void windowIconified(WindowEvent e) {
+				
+			}
+			
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+			
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+			
+			@Override
+			public void windowClosing(WindowEvent e) {
+				hide_window(-1);
+			}
+			
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+			
+			@Override
+			public void windowActivated(WindowEvent e) {	
+			}
+		});
 
 		this.main_panel = new JPanel();
 		this.main_panel.setLayout(new GridBagLayout());
@@ -98,6 +134,8 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 		this.btn_config_file_select.addActionListener(this);
 		this.btn_output_file_select.addActionListener(this);
 		this.btn_approve.addActionListener(this);
+		this.getRootPane().setDefaultButton(this.btn_approve);
+		this.btn_approve.requestFocus();
 		this.btn_cancel.addActionListener(this);
 
 		this.lbl_folder_select = new JLabel("Batch Folder:");
@@ -147,9 +185,14 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 		return this.text_output_file.getText();
 	}
 
-	public void show_window() {
+	public void show_window(JFrame new_parent) {
 		this.status = 1;
+		
 		this.setVisible(true);
+		if (new_parent != null && new_parent.isVisible()) {
+			Point p_loc = new_parent.getLocation();
+			this.setLocation(p_loc.x + 300, p_loc.y + 200);
+		}
 	}
 
 	public void hide_window(int new_status) {

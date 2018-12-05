@@ -46,6 +46,7 @@ public class Window extends JFrame {
 	public FilterManager filter_manager = null;
 	
 	public static final File DOCUMENTS = new File(System.getProperty("user.home") + File.separator + "Documents");
+	public static final File DOWNLOADS = new File(System.getProperty("user.home") + File.separator + "Downloads");
 
 	public Window() {
 		super();
@@ -423,6 +424,7 @@ public class Window extends JFrame {
 		String path = "res/";
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
 
+		this.close_all_images();
 		ImageConverter.nd2_split(new File(path + name));
 		open_all_files("temp");
 	}

@@ -41,10 +41,10 @@ public class Viewer extends JPanel {
 	public void paint(Graphics g) {
 		if (image_steps.size() > 0) {
 			BufferedImage to_draw = image_steps.get(image_steps.size() - 1);
-			
+
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
 			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
-			
+
 			int x = this.getWidth() / 2 - width / 2;
 			int y = this.getHeight() / 2 - height / 2;
 			g.drawImage(to_draw, x, y, width, height, null);
@@ -61,6 +61,7 @@ public class Viewer extends JPanel {
 		for (Point blob : blobs) {
 			points.addPoint(blob);
 		}
+		this.gui_controller.update_count(blobs.size());
 		this.repaint();
 	}
 
@@ -147,7 +148,7 @@ public class Viewer extends JPanel {
 	public List<Filter> get_filters() {
 		return this.filters;
 	}
-	
+
 	public void set_continuous_blob_finding(boolean finding) {
 		this.continuous_blob_finding = finding;
 	}

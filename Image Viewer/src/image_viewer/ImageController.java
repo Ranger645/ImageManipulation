@@ -13,6 +13,7 @@ import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -41,11 +42,12 @@ public class ImageController extends JPanel {
 	private JTabbedPane control_tabs = new JTabbedPane();
 	private JPanel filter_control_panel = null;
 	private int last_config_index = 0;
-	
+
 	private JSpinner blob_size_control;
 	private JTextField blob_grey_thresh_text;
 	private JSlider blob_grey_thresh_slider;
 	private JCheckBox continuous_count_toggle;
+	private JLabel count_display;
 
 	private static final String CONTROL = "Control";
 	private static final String FILTER = "Filter";
@@ -94,18 +96,20 @@ public class ImageController extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				image.set_continuous_blob_finding(continuous_count_toggle.isSelected());
-				if (! continuous_count_toggle.isSelected())
+				if (!continuous_count_toggle.isSelected())
 					image.points.clear_points();
 				else
 					image.point_out_blobs();
 				image.repaint();
 			}
 		});
+		count_display = new JLabel("Count: ");
 		Box count_control_box = Box.createVerticalBox();
 		count_control_box.add(blob_grey_thresh_slider);
 		count_control_box.add(blob_grey_thresh_text);
 		count_control_box.add(blob_size_control);
 		count_control_box.add(continuous_count_toggle);
+		count_control_box.add(count_display);
 		count_control_box.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
 		control_box.add(count_control_box);
 		control_box.add(btn_close_image);
@@ -194,19 +198,23 @@ public class ImageController extends JPanel {
 		Utilites.addGridComponent(this, control_tabs, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
 				GridBagConstraints.BOTH);
 	}
-	
+
+	public void update_count(int count) {
+		this.count_display.setText("Count: " + count);
+	}
+
 	public int get_grey_thresh() {
 		return this.blob_grey_thresh_slider.getValue();
 	}
-	
+
 	public int get_blob_size() {
 		return (int) this.blob_size_control.getValue();
 	}
-	
+
 	public void set_grey_thresh(int d) {
 		this.blob_grey_thresh_slider.setValue(d);
 	}
-	
+
 	public void set_blob_size(int size) {
 		this.blob_size_control.setValue(size);
 	}
@@ -223,7 +231,7 @@ public class ImageController extends JPanel {
 	public void init_window() {
 		this.window = (Window) image.getParent().getParent().getParent().getParent().getParent().getParent();
 	}
-	
+
 	public Window get_window() {
 		return this.window;
 	}
