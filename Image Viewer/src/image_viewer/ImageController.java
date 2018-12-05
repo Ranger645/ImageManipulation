@@ -202,6 +202,14 @@ public class ImageController extends JPanel {
 	public int get_blob_size() {
 		return (int) this.blob_size_control.getValue();
 	}
+	
+	public void set_grey_thresh(int d) {
+		this.blob_grey_thresh_slider.setValue(d);
+	}
+	
+	public void set_blob_size(int size) {
+		this.blob_size_control.setValue(size);
+	}
 
 	public void change_filter_config_panel(int index) {
 		if (index >= 0) {

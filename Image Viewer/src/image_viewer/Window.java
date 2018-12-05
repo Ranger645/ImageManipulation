@@ -7,14 +7,13 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -26,7 +25,9 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import batch.BackgroundNd2Counter;
 import batch.BatchCountExecution;
 import filters.F_Combination;
 import filters.Filter;
@@ -43,9 +44,12 @@ public class Window extends JFrame {
 	private Window self = null;
 
 	public FilterManager filter_manager = null;
+	
+	public static final File DOCUMENTS = new File(System.getProperty("user.home") + File.separator + "Documents");
 
 	public Window() {
 		super();
+		System.out.println("Default Path: " + DOCUMENTS.getAbsolutePath());
 		this.self = this;
 		this.setSize(1000, 700);
 		this.setTitle(TITLE);
@@ -87,12 +91,62 @@ public class Window extends JFrame {
 		save_filter_list.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.showSaveDialog(self);
-				File filter_file = chooser.getSelectedFile();
+				Viewer selected = get_selected_viewer();
+				File filter_file = showFileSaveDialog(DOCUMENTS, selected.KEY, "filter");
+				if (filter_file == null)
+					return;
+				
 				try {
 					PrintWriter file_write = new PrintWriter(filter_file);
 					file_write.print(filter_manager.encode_filters(get_selected_viewer().get_filters()));
+					file_write.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem save_count_file = new JMenuItem("Save Count File");
+		save_count_file.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Viewer selected = get_selected_viewer();
+				File filter_file = showFileSaveDialog(DOCUMENTS, selected.KEY, "count");
+				if (filter_file == null)
+					return;
+				
+				try {
+					PrintWriter file_write = new PrintWriter(filter_file);
+					file_write.println(selected.KEY + "," + selected.gui_controller.get_grey_thresh() + ","
+							+ selected.gui_controller.get_blob_size());
+					file_write.print(filter_manager.encode_filters(selected.get_filters()));
+					file_write.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem save_image_batch_file = new JMenuItem("Save Batch Settings File");
+		save_image_batch_file.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File batch_file = showFileSaveDialog(DOCUMENTS, "batch", "batch");
+				if (batch_file == null)
+					return;
+				
+				try {
+					PrintWriter file_write = new PrintWriter(batch_file);
+					
+					// Printing the header:
+					file_write.println(batch_file.getName() + "," + image_viewers.size());
+					file_write.println("#####");
+					
+					// Printing the Viewers each separated by Lines with #####
+					for (Viewer v : image_viewers) {
+						file_write.println(v.KEY + "," + v.gui_controller.get_grey_thresh() + ","
+								+ v.gui_controller.get_blob_size());
+						file_write.print(filter_manager.encode_filters(v.get_filters()));
+						file_write.println("#####");
+					}
 					file_write.close();
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();
@@ -103,20 +157,66 @@ public class Window extends JFrame {
 		open_filter_list.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.showOpenDialog(self);
-				File filter_file = chooser.getSelectedFile();
+				File filter_file = showFileOpenDialog(DOCUMENTS, "filter");
+				if (filter_file == null)
+					return;
+				
 				try {
 					FileInputStream file_read = new FileInputStream(filter_file);
 					byte[] bytes = file_read.readAllBytes();
 					String values = new String(bytes);
-					
+
 					get_selected_viewer().clear_filters();
 					List<Filter> filters = filter_manager.decode_filters(values);
-					
+
 					for (Filter f : filters)
 						get_selected_viewer().add_filter(f);
-					
+
+					file_read.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem open_count_file = new JMenuItem("Apply Count File");
+		open_count_file.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File filter_file = showFileOpenDialog(DOCUMENTS, "count");
+				if (filter_file == null)
+					return;
+				
+				try {
+					FileInputStream file_read = new FileInputStream(filter_file);
+					byte[] bytes = file_read.readAllBytes();
+					String values = new String(bytes);
+
+					String header = values.substring(0, values.indexOf("\n"));
+					String[] header_values = header.split(",");
+					values = values.substring(values.indexOf("\n") + 1);
+
+					int index = -1;
+					for (int i = 0; i < tabs.getTabCount(); i++)
+						if (tabs.getTitleAt(i).equals(header_values[0]))
+							index = i;
+
+					Viewer to_apply_to = null;
+					if (index != -1) {
+						to_apply_to = (Viewer) tabs.getComponentAt(index);
+					} else {
+						to_apply_to = get_selected_viewer();
+					}
+
+					to_apply_to.clear_filters();
+					to_apply_to.gui_controller.set_grey_thresh(Integer.parseInt(header_values[1]));
+					to_apply_to.gui_controller.set_blob_size(Integer.parseInt(header_values[2]));
+					List<Filter> filters = filter_manager.decode_filters(values);
+
+					for (Filter f : filters)
+						to_apply_to.add_filter(f);
+
 					file_read.close();
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();
@@ -128,7 +228,10 @@ public class Window extends JFrame {
 		file_menu.add(openoption);
 		file_menu.add(opennd2option);
 		file_menu.add(open_filter_list);
+		file_menu.add(open_count_file);
 		file_menu.add(save_filter_list);
+		file_menu.add(save_count_file);
+		file_menu.add(save_image_batch_file);
 		file_menu.addSeparator();
 		file_menu.add(closeoption);
 
@@ -213,12 +316,28 @@ public class Window extends JFrame {
 				}
 			}
 		});
+		JMenuItem batch_count_nd2 = new JMenuItem("Batch Count nd2...");
+		batch_count_nd2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Thread t = new Thread() {
+					public void run() {
+						BackgroundNd2Counter counter = BatchCountConfigWindow.show_config_dialog(self);
+						if (counter == null)
+							return;
+						counter.calculate();
+					}
+				};
+				t.start();
+			}
+		});
 		algo_menu.add(blob_count);
 		algo_menu.addSeparator();
 		algo_menu.add(clear_count);
 		algo_menu.addSeparator();
 		algo_menu.add(batch_count_res);
 		algo_menu.add(batch_count_gen);
+		algo_menu.add(batch_count_nd2);
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
@@ -251,6 +370,53 @@ public class Window extends JFrame {
 
 		this.add(view_panel);
 		this.setVisible(true);
+	}
+
+	/**
+	 * Shows a save dialog that contains error checking and options for a starting
+	 * directory, default file name, and extension.
+	 * 
+	 * @param starting_directory
+	 * @param default_name
+	 * @param extension
+	 * @return
+	 */
+	public File showFileSaveDialog(File starting_directory, String default_name, String extension) {
+		JFileChooser chooser = new JFileChooser(starting_directory);
+		File default_file = new File(starting_directory, default_name + "." + extension);
+		chooser.setSelectedFile(default_file);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
+		chooser.setFileFilter(filter);
+		int result = chooser.showSaveDialog(this);
+		
+		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
+			return null;
+		
+		return chooser.getSelectedFile();
+	}
+	
+	/**
+	 * Shows an open dialog that contains error checking and options for a starting
+	 * directory and extension.
+	 * 
+	 * @param starting_directory
+	 * @param extension
+	 * @return
+	 */
+	public File showFileOpenDialog(File starting_directory, String extension) {
+		JFileChooser chooser = new JFileChooser(starting_directory);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
+		chooser.setFileFilter(filter);
+		
+		int result = chooser.showOpenDialog(this);
+		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
+			return null;
+		
+		File selected = chooser.getSelectedFile();
+		if (selected == null || !selected.exists())
+			return null;
+		else
+			return selected;
 	}
 
 	public void import_nd2() {
@@ -288,10 +454,8 @@ public class Window extends JFrame {
 			tabs.addTab(viewer.KEY, viewer);
 			viewer.gui_controller.init_window();
 
-			// Adding the GUI controller to the card layout and setting the card layout to
-			// show the image controller that was just added.
+			// Adding the GUI controller to the card layout
 			gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
-			((CardLayout) gui_filter_managers.getLayout()).show(gui_filter_managers, viewer.KEY);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -303,7 +467,9 @@ public class Window extends JFrame {
 		String path = "res/";
 
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_5.png");
-		Viewer image_viewer = new Viewer(name + tabs.getTabCount());
+		String[] name_split = name.split("\\.");
+		
+		Viewer image_viewer = new Viewer(name_split[0] + "_" + tabs.getTabCount());
 
 		path += name;
 		this.add_viewer(image_viewer, new File(path));

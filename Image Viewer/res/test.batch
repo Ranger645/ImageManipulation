@@ -1,0 +1,11 @@
+test.batch,2
+#####
+1,122,14
+Color Inversion,
+Contrast Increase,148.0
+Multiply,1.0,1.51,1.0
+#####
+2,214,22
+Multiply,1.44,1.0,1.0
+Contrast Increase,20.0
+#####
