@@ -33,6 +33,7 @@ import filters.F_Combination;
 import filters.Filter;
 import filters.FilterManager;
 import tools.ImageConverter;
+import utilities.FileUtilities;
 
 public class Window extends JFrame {
 
@@ -93,7 +94,7 @@ public class Window extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Viewer selected = get_selected_viewer();
-				File filter_file = showFileSaveDialog(DOCUMENTS, selected.KEY, "filter");
+				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "filter", self);
 				if (filter_file == null)
 					return;
 				
@@ -111,7 +112,7 @@ public class Window extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Viewer selected = get_selected_viewer();
-				File filter_file = showFileSaveDialog(DOCUMENTS, selected.KEY, "count");
+				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "count", self);
 				if (filter_file == null)
 					return;
 				
@@ -130,7 +131,7 @@ public class Window extends JFrame {
 		save_image_batch_file.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File batch_file = showFileSaveDialog(DOCUMENTS, "batch", "batch");
+				File batch_file = FileUtilities.showFileSaveDialog(DOCUMENTS, "batch", "batch", self);
 				if (batch_file == null)
 					return;
 				
@@ -158,7 +159,7 @@ public class Window extends JFrame {
 		open_filter_list.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File filter_file = showFileOpenDialog(DOCUMENTS, "filter");
+				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "filter", self);
 				if (filter_file == null)
 					return;
 				
@@ -185,7 +186,7 @@ public class Window extends JFrame {
 		open_count_file.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File filter_file = showFileOpenDialog(DOCUMENTS, "count");
+				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "count", self);
 				if (filter_file == null)
 					return;
 				
@@ -371,53 +372,6 @@ public class Window extends JFrame {
 
 		this.add(view_panel);
 		this.setVisible(true);
-	}
-
-	/**
-	 * Shows a save dialog that contains error checking and options for a starting
-	 * directory, default file name, and extension.
-	 * 
-	 * @param starting_directory
-	 * @param default_name
-	 * @param extension
-	 * @return
-	 */
-	public File showFileSaveDialog(File starting_directory, String default_name, String extension) {
-		JFileChooser chooser = new JFileChooser(starting_directory);
-		File default_file = new File(starting_directory, default_name + "." + extension);
-		chooser.setSelectedFile(default_file);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
-		chooser.setFileFilter(filter);
-		int result = chooser.showSaveDialog(this);
-		
-		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
-			return null;
-		
-		return chooser.getSelectedFile();
-	}
-	
-	/**
-	 * Shows an open dialog that contains error checking and options for a starting
-	 * directory and extension.
-	 * 
-	 * @param starting_directory
-	 * @param extension
-	 * @return
-	 */
-	public File showFileOpenDialog(File starting_directory, String extension) {
-		JFileChooser chooser = new JFileChooser(starting_directory);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
-		chooser.setFileFilter(filter);
-		
-		int result = chooser.showOpenDialog(this);
-		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
-			return null;
-		
-		File selected = chooser.getSelectedFile();
-		if (selected == null || !selected.exists())
-			return null;
-		else
-			return selected;
 	}
 
 	public void import_nd2() {

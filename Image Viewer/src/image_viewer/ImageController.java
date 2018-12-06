@@ -56,7 +56,8 @@ public class ImageController extends JPanel {
 		this.image = image;
 		this.setLayout(new GridBagLayout());
 
-		Box control_box = Box.createVerticalBox();
+		JPanel control_panel = new JPanel();
+		control_panel.setLayout(new GridBagLayout());
 		JButton btn_close_image = new JButton("Close Image");
 		btn_close_image.addActionListener(new ActionListener() {
 			@Override
@@ -65,6 +66,7 @@ public class ImageController extends JPanel {
 			}
 		});
 		blob_grey_thresh_slider = new JSlider(5, 255, 100);
+		blob_grey_thresh_slider.setToolTipText("Threshold Slider");
 		blob_grey_thresh_slider.setPaintTicks(true);
 		blob_grey_thresh_slider.setMajorTickSpacing(50);
 		blob_grey_thresh_slider.setMinorTickSpacing(10);
@@ -75,6 +77,7 @@ public class ImageController extends JPanel {
 				image.point_out_blobs();
 			}
 		});
+		JLabel thresh_label = new JLabel("Threshold: ");
 		blob_grey_thresh_text = new JTextField("100", 5);
 		blob_grey_thresh_text.addActionListener(new ActionListener() {
 			@Override
@@ -83,6 +86,7 @@ public class ImageController extends JPanel {
 				image.point_out_blobs();
 			}
 		});
+		JLabel size_control_label = new JLabel("Min Size: ");
 		blob_size_control = new JSpinner();
 		blob_size_control.setValue(15);
 		blob_size_control.addChangeListener(new ChangeListener() {
@@ -96,25 +100,31 @@ public class ImageController extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				image.set_continuous_blob_finding(continuous_count_toggle.isSelected());
-				if (!continuous_count_toggle.isSelected())
-					image.points.clear_points();
-				else
-					image.point_out_blobs();
-				image.repaint();
 			}
 		});
 		count_display = new JLabel("Count: ");
-		Box count_control_box = Box.createVerticalBox();
-		count_control_box.add(blob_grey_thresh_slider);
-		count_control_box.add(blob_grey_thresh_text);
-		count_control_box.add(blob_size_control);
-		count_control_box.add(continuous_count_toggle);
-		count_control_box.add(count_display);
-		count_control_box.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
-		control_box.add(count_control_box);
-		control_box.add(btn_close_image);
-		JPanel control_panel = new JPanel();
-		control_panel.add(control_box);
+		JPanel count_control_panel = new JPanel();
+		count_control_panel.setLayout(new GridBagLayout());
+		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_slider, 0, 0, 2, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, thresh_label, 0, 1, 1, 1, 0.5, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_text, 1, 1, 1, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, size_control_label, 0, 2, 1, 1, 0.5, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, blob_size_control, 1, 2, 1, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, continuous_count_toggle, 0, 3, 2, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, count_display, 0, 4, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.BOTH);
+		count_control_panel.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
+
+		Utilites.addGridComponent(control_panel, count_control_panel, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, btn_close_image, 0, 1, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+				GridBagConstraints.HORIZONTAL);
 
 		JPanel filter_panel = new JPanel();
 		filter_panel.setLayout(new GridBagLayout());

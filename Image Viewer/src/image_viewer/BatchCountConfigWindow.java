@@ -19,11 +19,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import batch.BackgroundNd2Counter;
+import utilities.FileUtilities;
 
 public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	private final String TITLE = "Nd2 Batch Count Configuration";
-	private static String folderDefault = Window.DOWNLOADS.getAbsolutePath();
+	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath();
 	private static String configFileDefault = "/Users/gregfoss/git/ImageManipulation/Image Viewer/res/test.batch";
 	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "batch_counts.csv";
 	private static BatchCountConfigWindow staticWindow = null;
@@ -210,7 +211,28 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 			this.hide_window(0);
 		} else if (e.getSource() == this.btn_cancel) {
 			this.hide_window(-1);
-		}
+		} else if (e.getSource() == this.btn_folder_select) {
+			File current = new File(this.text_folder.getText());
+			current = current.exists() ? current : new File(BatchCountConfigWindow.folderDefault);
+			File result = FileUtilities.showFolderOpenDialog(current, (Window) this.parent);
+			if (result != null)
+				this.text_folder.setText(result.getAbsolutePath());
+			this.requestFocus();
+		} else if (e.getSource() == this.btn_config_file_select) {
+			File current = new File(this.text_config_file.getText());
+			current = current.exists() ? current : new File(BatchCountConfigWindow.configFileDefault);
+			File result = FileUtilities.showFileOpenDialog(current, "batch", (Window) this.parent);
+			if (result != null)
+				this.text_config_file.setText(result.getAbsolutePath());
+			this.requestFocus();
+		} else if (e.getSource() == this.btn_output_file_select) {
+			File current = new File(this.text_output_file.getText());
+			current = current.exists() ? current : new File(BatchCountConfigWindow.outputFileDefault);
+			File result = FileUtilities.showFileSaveDialog(current, "counts", "csv", (Window) this.parent);
+			if (result != null)
+				this.text_output_file.setText(result.getAbsolutePath());
+			this.requestFocus();
+		} 
 	}
 
 }

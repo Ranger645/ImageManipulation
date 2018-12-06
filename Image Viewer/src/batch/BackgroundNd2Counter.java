@@ -8,10 +8,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import filters.F_Combination;
-import image_viewer.Utilites;
 import image_viewer.WorkingBar;
 import tools.ImageConverter;
 import utilities.CountConfiguration;
+import utilities.FileUtilities;
 
 /**
  * Counts the number of blobs given an nd2 file or folder containing nd2 files.
@@ -30,7 +30,7 @@ public class BackgroundNd2Counter {
 	public BackgroundNd2Counter(File nd2, String config, File output) {
 		this.config = config;
 		if (nd2.isDirectory()) {
-			List<File> files = Utilites.get_files_in_dir_by_type(nd2, "nd2");
+			List<File> files = FileUtilities.get_files_in_dir_by_type(nd2, "nd2");
 			this.nd2_files = new File[files.size()];
 			for (int i = 0; i < files.size(); i++)
 				this.nd2_files[i] = files.get(i);
