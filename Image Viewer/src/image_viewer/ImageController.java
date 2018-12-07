@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
@@ -107,8 +108,8 @@ public class ImageController extends JPanel {
 		count_control_panel.setLayout(new GridBagLayout());
 		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_slider, 0, 0, 2, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-		Utilites.addGridComponent(count_control_panel, thresh_label, 0, 1, 1, 1, 0.5, 1.0,
-				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, thresh_label, 0, 1, 1, 1, 0.5, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.BOTH);
 		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_text, 1, 1, 1, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
 		Utilites.addGridComponent(count_control_panel, size_control_label, 0, 2, 1, 1, 0.5, 1.0,
@@ -121,9 +122,38 @@ public class ImageController extends JPanel {
 				GridBagConstraints.BOTH);
 		count_control_panel.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
 
+		JPanel image_select_panel = new JPanel();
+		image_select_panel.setLayout(new GridBagLayout());
+		JRadioButton original_image_draw_button = new JRadioButton("Original Image");
+		original_image_draw_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.set_index_to_draw(0);
+			}
+		});
+		JRadioButton filtered_image_draw_button = new JRadioButton("Filtered Image");
+		filtered_image_draw_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.set_index_to_draw(-1);
+			}
+		});
+		ButtonGroup group = new ButtonGroup();
+		group.add(original_image_draw_button);
+		group.add(filtered_image_draw_button);
+		group.setSelected(filtered_image_draw_button.getModel(), true);
+
+		Utilites.addGridComponent(image_select_panel, original_image_draw_button, 0, 0, 1, 1, 1, 1,
+				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(image_select_panel, filtered_image_draw_button, 0, 1, 1, 1, 1, 1,
+				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+		image_select_panel.setBorder(BorderFactory.createTitledBorder("Image Draw Control"));
+
 		Utilites.addGridComponent(control_panel, count_control_panel, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
 				GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(control_panel, btn_close_image, 0, 1, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+		Utilites.addGridComponent(control_panel, image_select_panel, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, btn_close_image, 0, 2, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
 				GridBagConstraints.HORIZONTAL);
 
 		JPanel filter_panel = new JPanel();

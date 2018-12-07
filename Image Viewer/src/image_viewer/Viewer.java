@@ -24,6 +24,7 @@ public class Viewer extends JPanel {
 	private List<Filter> filters = new ArrayList<Filter>();
 
 	private boolean continuous_blob_finding = true;
+	private int display_index = -1;
 	public int zoom_percentage = 100;
 
 	public PointManager points = null;
@@ -40,7 +41,11 @@ public class Viewer extends JPanel {
 
 	public void paint(Graphics g) {
 		if (image_steps.size() > 0) {
-			BufferedImage to_draw = image_steps.get(image_steps.size() - 1);
+			BufferedImage to_draw = null;
+			if (display_index < 0 || display_index >= image_steps.size())
+				to_draw = image_steps.get(image_steps.size() - 1);
+			else
+				to_draw = image_steps.get(display_index);
 
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
 			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
@@ -81,6 +86,11 @@ public class Viewer extends JPanel {
 			return true;
 		}
 		return false;
+	}
+	
+	public void set_index_to_draw(int index) {
+		this.display_index = index;
+		this.repaint();
 	}
 
 	public void clear_filters() {
