@@ -7,7 +7,82 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import filters.F_Combination;
+import filters.F_Contrast_Increase;
+import filters.F_Multiply;
+import filters.F_Threshold;
+import filters.Filter;
+
 public class BlobFinder {
+
+	public static List<Blob> find_blobs_min_max(BufferedImage image, int grey_thresh, int min_blob_size, int min,
+			int max, double min_mult, int min_blur, int max_thresh) {
+
+		final int width = image.getWidth();
+		final int height = image.getHeight();
+
+		// Getting grey scale values and storing them in a single dimensional array:
+		int[] pixels = new int[width * height];
+		int[] pixels_copy = new int[width * height];
+		for (int i = 0; i < pixels.length; i++) {
+			Color c = new Color(image.getRGB(i % width, i / width));
+			int color = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+			pixels[i] = color;
+			pixels_copy[i] = color;
+		}
+
+		List<Blob> blobs = new ArrayList<Blob>();
+		// Getting the blobs themselves.
+		for (int i = 0; i < pixels.length; i++) {
+			if (pixels[i] >= grey_thresh) {
+				Blob blob = get_blob(pixels, i, grey_thresh, min_blob_size, width, height);
+				if (blob != null) {
+					blobs.add(blob);
+				}
+			}
+		}
+
+		if (max < 0 || min < 0)
+			return blobs;
+
+		// Now we have to take our calculated list of blobs and separate them into
+		// small, average, and large. We then apply a contrast increase to the large
+		// ones and a blur to the small ones and recount them.
+		Collections.sort(blobs, new BlobSortBySize());
+		int small_count = (int) (blobs.size() * (min / 100.0));
+		int large_start = blobs.size() - (int) (blobs.size() * ((100.0 - max) / 100.0));
+
+		// So we have to rerun these through the algorithm along with the middle size
+		// points to see if any can be merged. This will entail a multiply and then a
+		// blur. Both of these filters will be customizable.
+		BufferedImage small_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+		for (int i = 0; i < small_count; i++) {
+			if (i < small_count)
+				blobs.get(i).setType(-1);
+			for (Point p : blobs.get(i).points) {
+				small_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
+			}
+		}
+
+		// Now we have to rerun the big ones through the algorithm. Before we do that,
+		// they have to have their contrast increased by a user configurable value.
+		BufferedImage large_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+		while (large_start < blobs.size()) {
+			blobs.get(large_start).setType(1);
+			for (Point p : blobs.get(large_start).points) {
+				large_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
+			}
+			blobs.remove(large_start);
+		}
+		Filter large_filter = new F_Threshold(max_thresh);
+		large_blob_image = large_filter.filter(large_blob_image);
+		List<Blob> large_blobs = BlobFinder.find_blobs_min_max(large_blob_image, grey_thresh, min_blob_size, -1, -1, min_mult, min_blur, max_thresh);
+		for (Blob b : large_blobs)
+			b.setType(1);
+		blobs.addAll(large_blobs);
+				
+		return blobs;
+	}
 
 	/**
 	 * Finds the centers of all the blobs in the given image. The blobs are returned
@@ -20,7 +95,7 @@ public class BlobFinder {
 	 *                      to make it a blob.
 	 * @return - the list of points that are the centers of the blobs.
 	 */
-	public static List<Blob> find_blobs(BufferedImage image, int grey_thresh, int min_blob_size,
+	public static List<Blob> find_blobs_iterations(BufferedImage image, int grey_thresh, int min_blob_size,
 			int iterations) {
 
 		final int width = image.getWidth();
@@ -52,7 +127,7 @@ public class BlobFinder {
 
 			if (blobs.size() == 0)
 				break;
-			
+
 			/*
 			 * Now that the list of blobs is created, we can start to mess with it. We want
 			 * to get the centralized average of all the blob sizes to get the median based
@@ -100,10 +175,10 @@ public class BlobFinder {
 		}
 		return blobs;
 	}
-	
+
 	public static List<Point> find_blob_centers(BufferedImage image, int grey_thresh, int min_blob_size,
 			int iterations) {
-		List<Blob> blobs = BlobFinder.find_blobs(image, grey_thresh, min_blob_size, iterations);
+		List<Blob> blobs = BlobFinder.find_blobs_iterations(image, grey_thresh, min_blob_size, iterations);
 		List<Point> points = new ArrayList<Point>();
 		for (Blob b : blobs)
 			points.add(b.compute_average_point());
@@ -175,36 +250,36 @@ public class BlobFinder {
 			}
 			set_val(0, test, pixels, width);
 
-			// top right
-			test = new Point(current.x + 1, current.y - 1);
-			if (get_val(test, pixels, width) >= grey_thresh) {
-				points_to_test.add(test);
-				surrounding_count++;
-			}
-			set_val(0, test, pixels, width);
-			// bottom right
-			test = new Point(current.x + 1, current.y + 1);
-			if (get_val(test, pixels, width) >= grey_thresh) {
-				points_to_test.add(test);
-				surrounding_count++;
-			}
-			set_val(0, test, pixels, width);
-
-			// top left
-			test = new Point(current.x - 1, current.y - 1);
-			if (get_val(test, pixels, width) >= grey_thresh) {
-				points_to_test.add(test);
-				surrounding_count++;
-			}
-			set_val(0, test, pixels, width);
-
-			// bottom left
-			test = new Point(current.x - 1, current.y + 1);
-			if (get_val(test, pixels, width) >= grey_thresh) {
-				points_to_test.add(test);
-				surrounding_count++;
-			}
-			set_val(0, test, pixels, width);
+//			// top right
+//			test = new Point(current.x + 1, current.y - 1);
+//			if (get_val(test, pixels, width) >= grey_thresh) {
+//				points_to_test.add(test);
+//				surrounding_count++;
+//			}
+//			set_val(0, test, pixels, width);
+//			// bottom right
+//			test = new Point(current.x + 1, current.y + 1);
+//			if (get_val(test, pixels, width) >= grey_thresh) {
+//				points_to_test.add(test);
+//				surrounding_count++;
+//			}
+//			set_val(0, test, pixels, width);
+//
+//			// top left
+//			test = new Point(current.x - 1, current.y - 1);
+//			if (get_val(test, pixels, width) >= grey_thresh) {
+//				points_to_test.add(test);
+//				surrounding_count++;
+//			}
+//			set_val(0, test, pixels, width);
+//
+//			// bottom left
+//			test = new Point(current.x - 1, current.y + 1);
+//			if (get_val(test, pixels, width) >= grey_thresh) {
+//				points_to_test.add(test);
+//				surrounding_count++;
+//			}
+//			set_val(0, test, pixels, width);
 
 			if (surrounding_count != 8)
 				edge_points.add(current);

@@ -22,7 +22,7 @@ public class Viewer extends JPanel {
 	// The list of images that are the different steps in the filter process.
 	private List<BufferedImage> image_steps = new ArrayList<BufferedImage>();
 	// The images that store the counting steps:
-	private BufferedImage small_blob_image = null, large_blob_image = null;
+	private BufferedImage small_blob_image = null, large_blob_image = null, combined_blob_image = null;
 
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();
@@ -54,13 +54,15 @@ public class Viewer extends JPanel {
 						BufferedImage.TYPE_4BYTE_ABGR);
 
 				Graphics draw_graphics = to_draw.getGraphics();
-				draw_graphics.drawImage(image_steps.get(0), 0, 0, null);
-				draw_graphics.drawImage(original, original.getWidth() + 10, 0, null);
+				draw_graphics.drawImage(original, 0, 0, null);
 
 				if (small_blob_image != null)
 					draw_graphics.drawImage(small_blob_image, 0, original.getHeight() + 10, null);
 				if (large_blob_image != null)
-					draw_graphics.drawImage(large_blob_image, original.getWidth() + 10, original.getHeight() + 10, null);
+					draw_graphics.drawImage(large_blob_image, original.getWidth() + 10, original.getHeight() + 10,
+							null);
+				if (combined_blob_image != null)
+					draw_graphics.drawImage(combined_blob_image, original.getWidth() + 10, 0, null);
 
 			} else // Normal rendering
 			if (display_index < 0 || display_index >= image_steps.size())
@@ -74,16 +76,16 @@ public class Viewer extends JPanel {
 			int x = this.getWidth() / 2 - width / 2;
 			int y = this.getHeight() / 2 - height / 2;
 			g.drawImage(to_draw, x, y, width, height, null);
-			if (display_mode == 2)
-				x += (width / 2 + 10);
 			points.paint_points(g, x, y, zoom_percentage);
 		}
 	}
 
 	public void point_out_blobs() {
 		points.clear_points();
-		List<Blob> blobs = BlobFinder.find_blobs(image_steps.get(image_steps.size() - 1),
-				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(), 3);
+		List<Blob> blobs = BlobFinder.find_blobs_min_max(image_steps.get(image_steps.size() - 1),
+				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(),
+				this.gui_controller.get_count_min(), this.gui_controller.get_count_max(), 3, 5,
+				this.gui_controller.get_max_threshold());
 
 		BufferedImage original = image_steps.get(image_steps.size() - 1);
 		int width = original.getWidth();
@@ -96,11 +98,16 @@ public class Viewer extends JPanel {
 		Graphics small_graphics = small_blob_image.getGraphics();
 		small_graphics.setColor(Color.BLACK);
 		small_graphics.fillRect(0, 0, width, height);
-		
+		combined_blob_image = new BufferedImage(width, height, original.getType());
+		Graphics combined_graphics = combined_blob_image.getGraphics();
+		combined_graphics.setColor(Color.BLACK);
+		combined_graphics.fillRect(0, 0, width, height);
+
 		int white_rgb = Color.WHITE.getRGB();
-		
+
 		for (Blob b : blobs) {
-			points.addPoint(b.compute_average_point(), b.getType() == 0 ? Color.CYAN : Color.RED);
+			points.addPoint(b.compute_average_point(),
+					b.getType() == 0 ? Color.CYAN : b.getType() < 0 ? Color.YELLOW : Color.RED);
 
 			if (display_mode == 2) {
 				// Painting the large and small blob images if need be.
@@ -108,13 +115,17 @@ public class Viewer extends JPanel {
 					// Painting the large image blob
 					for (Point p : b.points) {
 						large_blob_image.setRGB(p.x, p.y, white_rgb);
+						combined_blob_image.setRGB(p.x, p.y, white_rgb);
 					}
-				}
-				
-				if (b.getType() < 0) {
+				} else if (b.getType() < 0) {
 					// Painting the small image
 					for (Point p : b.points) {
 						small_blob_image.setRGB(p.x, p.y, white_rgb);
+						combined_blob_image.setRGB(p.x, p.y, white_rgb);
+					}
+				} else {
+					for (Point p : b.points) {
+						combined_blob_image.setRGB(p.x, p.y, white_rgb);
 					}
 				}
 			}

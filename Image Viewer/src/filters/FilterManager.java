@@ -22,6 +22,7 @@ public class FilterManager {
 		filters.put("Color Inversion", new F_Invert());
 		filters.put("Multiply", new F_Multiply());
 		filters.put("Greyscale", new F_Make_Greyscale());
+		filters.put("Threshold", new F_Threshold(10));
 	}
 
 	public String encode_filters(List<Filter> to_encode) {

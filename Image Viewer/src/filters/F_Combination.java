@@ -18,6 +18,12 @@ public class F_Combination extends Filter {
 		this.filters.addAll(filters);
 	}
 	
+	public F_Combination(Filter[] filters) {
+		super();
+		for (Filter f : filters)
+			this.filters.add(f);
+	}
+	
 	@Override
 	public BufferedImage filter(BufferedImage in) {
 		BufferedImage image = get_blank_image(in);

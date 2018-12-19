@@ -6,7 +6,8 @@ Purpose: The original purpose of this project was to develop a
 
 TODO for the Image Viewer
 
-1. Complete the Image Menu functionality.
+1. Adjust the algorithm to add max and min separate functionality.
+2. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original
 	b. Join: Creates a new image with all the selected images piled

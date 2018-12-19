@@ -46,7 +46,7 @@ public class ImageController extends JPanel {
 
 	private JSpinner blob_size_control;
 	private JTextField blob_grey_thresh_text, min_count_cutoff_text, max_count_cutoff_text;
-	private JSlider blob_grey_thresh_slider, min_count_cutoff_slider, max_count_cutoff_slider;
+	private JSlider blob_grey_thresh_slider, min_count_cutoff_slider, max_count_cutoff_slider, max_cutoff_threshold_slider;
 	private JCheckBox continuous_count_toggle;
 	private JLabel count_display;
 
@@ -106,18 +106,23 @@ public class ImageController extends JPanel {
 		max_count_cutoff_text = new JTextField("95", 5);
 		min_count_cutoff_slider = new JSlider(0, 95, 5);
 		max_count_cutoff_slider = new JSlider(5, 100, 95);
+		max_cutoff_threshold_slider = new JSlider(0, 255, 50);
 		min_count_cutoff_slider.setPaintTicks(true);
 		min_count_cutoff_slider.setMajorTickSpacing(10);
 		min_count_cutoff_slider.setMinorTickSpacing(5);
 		max_count_cutoff_slider.setPaintTicks(true);
 		max_count_cutoff_slider.setMajorTickSpacing(10);
 		max_count_cutoff_slider.setMinorTickSpacing(5);
+		max_cutoff_threshold_slider.setPaintTicks(true);
+		max_cutoff_threshold_slider.setMajorTickSpacing(10);
+		max_cutoff_threshold_slider.setMinorTickSpacing(5);
 		Utilites.addGridComponent(min_cutoff_panel, min_count_cutoff_slider, 0, 0, 2, 1, 1.0, 1.0);
 		Utilites.addGridComponent(min_cutoff_panel, min_cutoff_label, 0, 1, 1, 1, 1.0, 1.0);
 		Utilites.addGridComponent(min_cutoff_panel, min_count_cutoff_text, 1, 1, 1, 1, 1.0, 1.0);
 		Utilites.addGridComponent(max_cutoff_panel, max_count_cutoff_slider, 0, 0, 2, 1, 1.0, 1.0);
 		Utilites.addGridComponent(max_cutoff_panel, max_cutoff_label, 0, 1, 1, 1, 1.0, 1.0);
 		Utilites.addGridComponent(max_cutoff_panel, max_count_cutoff_text, 1, 1, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(max_cutoff_panel, max_cutoff_threshold_slider, 0, 2, 2, 1, 1.0, 1.0);
 		min_cutoff_panel.setBorder(BorderFactory.createTitledBorder("Min Count Percentage Cutoff"));
 		max_cutoff_panel.setBorder(BorderFactory.createTitledBorder("Max Count Percentage Cutoff"));
 		// Action listeners for count cutoff percentages:
@@ -132,6 +137,7 @@ public class ImageController extends JPanel {
 					new_min = 0;
 				min_count_cutoff_slider.setValue(new_min);
 				max_count_cutoff_slider.setMinimum(new_min);
+				image.point_out_blobs();
 			}
 		});
 		min_count_cutoff_slider.addChangeListener(new ChangeListener() {
@@ -140,6 +146,7 @@ public class ImageController extends JPanel {
 				int new_min = min_count_cutoff_slider.getValue();
 				min_count_cutoff_text.setText("" + new_min);
 				max_count_cutoff_slider.setMinimum(new_min);
+				image.point_out_blobs();
 			}
 		});
 		max_count_cutoff_text.addActionListener(new ActionListener() {
@@ -153,6 +160,7 @@ public class ImageController extends JPanel {
 					new_max = 0;
 				max_count_cutoff_slider.setValue(new_max);
 				min_count_cutoff_slider.setMaximum(new_max);
+				image.point_out_blobs();
 			}
 		});
 		max_count_cutoff_slider.addChangeListener(new ChangeListener() {
@@ -161,6 +169,13 @@ public class ImageController extends JPanel {
 				int new_min = max_count_cutoff_slider.getValue();
 				max_count_cutoff_text.setText("" + new_min);
 				min_count_cutoff_slider.setMaximum(new_min);
+				image.point_out_blobs();
+			}
+		});
+		max_cutoff_threshold_slider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				image.point_out_blobs();
 			}
 		});
 
@@ -390,6 +405,18 @@ public class ImageController extends JPanel {
 			if (this.window.filter_manager.get_filter(name).getClass().getName() == f.getClass().getName())
 				return name;
 		return "NULL";
+	}
+
+	public int get_count_max() {
+		return this.max_count_cutoff_slider.getValue();
+	}
+	
+	public int get_count_min() {
+		return this.min_count_cutoff_slider.getValue();
+	}
+	
+	public int get_max_threshold() {
+		return this.max_cutoff_threshold_slider.getValue();
 	}
 
 }

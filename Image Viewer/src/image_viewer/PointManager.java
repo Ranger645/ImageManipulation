@@ -41,11 +41,14 @@ public class PointManager {
 	}
 	
 	public void removePoint(Point p) {
-		points.remove(p);
+		int index = points.indexOf(p);
+		points.remove(index);
+		point_colors.remove(index);
 	}
 	
 	public void clear_points() {
 		points.clear();
+		point_colors.clear();
 	}
 	
 	public Point getPointNear(int x, int y, int radius) {
