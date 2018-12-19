@@ -9,6 +9,7 @@ import java.util.List;
 public class PointManager {
 	
 	private List<Point> points = new ArrayList<Point>();
+	private List<Color> point_colors = new ArrayList<Color>();
 	
 	public PointManager() {
 		
@@ -18,9 +19,10 @@ public class PointManager {
 		// Draws the list of points on the given graphics object with the given x and y 
 		// as the origin of all the points in the points array.
 		int radius = 3;
-		g.setColor(Color.CYAN);
 		double multiplier = zoom / 100.0;
-		for (Point p : points) {
+		for (int i = 0; i < points.size(); i++) {
+			Point p = points.get(i);
+			g.setColor(point_colors.get(i));
 			int x = dx + (int) (p.getX() * multiplier);
 			int y = dy + (int) (p.getY() * multiplier);
 			g.drawLine(x - radius, y, x + radius, y);
@@ -30,6 +32,12 @@ public class PointManager {
 	
 	public void addPoint(Point p) {
 		points.add(p);
+		this.point_colors.add(Color.CYAN);
+	}
+	
+	public void addPoint(Point p, Color c) {
+		points.add(p);
+		this.point_colors.add(c);
 	}
 	
 	public void removePoint(Point p) {

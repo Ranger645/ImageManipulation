@@ -137,7 +137,7 @@ public class F_Color_Average_Square extends Filter {
 	public void set_params(String params) {
 		super.set_params(params);
 		String[] param_array = params.split(",");
-		this.RADIUS = Integer.parseInt(param_array[1]);
+		this.RADIUS = Integer.parseInt(param_array[0]);
 		this.control.setValue(this.RADIUS);
 	}
 

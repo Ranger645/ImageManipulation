@@ -25,10 +25,11 @@ public class WorkingBar extends JComponent implements Runnable {
 			g.fillRect(x % this.getWidth() - this.getWidth(), 0, (int) (this.getWidth() * this.width_ratio),
 					this.getHeight());
 			g.setColor(Color.BLACK);
-			synchronized (draw_string) {
-				g.drawString(draw_string, 0, this.getHeight() - 3);
-			}
 			this.x += 2;
+		}
+		
+		synchronized (draw_string) {
+			g.drawString(draw_string, 0, this.getHeight() - 3);
 		}
 	}
 	

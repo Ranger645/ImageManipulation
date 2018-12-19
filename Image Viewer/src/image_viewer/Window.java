@@ -377,6 +377,8 @@ public class Window extends JFrame {
 	public void import_nd2() {
 		String path = "res/";
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
+		if (name == null)
+			return;
 
 		this.close_all_images();
 		ImageConverter.nd2_split(new File(path + name));

@@ -20,7 +20,7 @@ public class BlobFinder {
 	 *                      to make it a blob.
 	 * @return - the list of points that are the centers of the blobs.
 	 */
-	public static List<Point> find_blob_centers(BufferedImage image, int grey_thresh, int min_blob_size,
+	public static List<Blob> find_blobs(BufferedImage image, int grey_thresh, int min_blob_size,
 			int iterations) {
 
 		final int width = image.getWidth();
@@ -78,6 +78,7 @@ public class BlobFinder {
 				while (index < blobs.size()) {
 					Blob b = blobs.get(index);
 					if (b.points.size() <= median_average_blob_size * 2) {
+						b.setType(current_iteration);
 						index++;
 					} else {
 						// RIGHT HERE IS WHERE THE MAGIC HAPPENS. All the blobs that are too big are fed
@@ -97,11 +98,16 @@ public class BlobFinder {
 					grey_thresh = new_grey_thresh / count;
 			}
 		}
-
-		List<Point> average_points = new ArrayList<Point>();
+		return blobs;
+	}
+	
+	public static List<Point> find_blob_centers(BufferedImage image, int grey_thresh, int min_blob_size,
+			int iterations) {
+		List<Blob> blobs = BlobFinder.find_blobs(image, grey_thresh, min_blob_size, iterations);
+		List<Point> points = new ArrayList<Point>();
 		for (Blob b : blobs)
-			average_points.add(b.compute_average_point());
-		return average_points;
+			points.add(b.compute_average_point());
+		return points;
 	}
 
 	/**

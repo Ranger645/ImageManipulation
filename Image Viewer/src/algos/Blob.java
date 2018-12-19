@@ -6,8 +6,12 @@ import java.util.List;
 
 public class Blob {
 
-	List<Point> points = null;
-	List<Point> edge_points = null;
+	public List<Point> points = null;
+	public List<Point> edge_points = null;
+
+	// The variable that will be used for coloring. Smaller points will be negative
+	// and bigger points will be positive.
+	private int type = 0;
 
 	public Blob() {
 		points = new ArrayList<Point>();
@@ -43,9 +47,13 @@ public class Blob {
 		Point average = this.compute_average_point();
 		return String.format("[Blob={Size=%d;Average=(%f,%f)}]", this.points.size(), average.x, average.y);
 	}
-
-	public static double point_triangle_area(Point a, Point b, Point c) {
-		return (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2.0;
+	
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	public int getType() {
+		return this.type;
 	}
 
 }

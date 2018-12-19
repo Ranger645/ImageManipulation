@@ -23,5 +23,19 @@ public class Utilites {
 		gbc.fill = fill;
 		panel.add(c, gbc);
 	}
+	
+	public static void addGridComponent(JPanel panel, JComponent c, int x, int y, int width, int height, double weightx,
+			double weighty) {
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = x;
+		gbc.gridy = y;
+		gbc.gridwidth = width;
+		gbc.gridheight = height;
+		gbc.weightx = weightx;
+		gbc.weighty = weighty;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = GridBagConstraints.BOTH;
+		panel.add(c, gbc);
+	}
 
 }

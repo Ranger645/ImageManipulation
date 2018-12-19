@@ -45,8 +45,8 @@ public class ImageController extends JPanel {
 	private int last_config_index = 0;
 
 	private JSpinner blob_size_control;
-	private JTextField blob_grey_thresh_text;
-	private JSlider blob_grey_thresh_slider;
+	private JTextField blob_grey_thresh_text, min_count_cutoff_text, max_count_cutoff_text;
+	private JSlider blob_grey_thresh_slider, min_count_cutoff_slider, max_count_cutoff_slider;
 	private JCheckBox continuous_count_toggle;
 	private JLabel count_display;
 
@@ -96,6 +96,74 @@ public class ImageController extends JPanel {
 				image.point_out_blobs();
 			}
 		});
+
+		// Initialization of count cutoff percentages:
+		JPanel min_cutoff_panel = new JPanel(new GridBagLayout());
+		JPanel max_cutoff_panel = new JPanel(new GridBagLayout());
+		JLabel min_cutoff_label = new JLabel("Min Cutoff Percent: ");
+		JLabel max_cutoff_label = new JLabel("Max Cutoff Percent: ");
+		min_count_cutoff_text = new JTextField("5", 5);
+		max_count_cutoff_text = new JTextField("95", 5);
+		min_count_cutoff_slider = new JSlider(0, 95, 5);
+		max_count_cutoff_slider = new JSlider(5, 100, 95);
+		min_count_cutoff_slider.setPaintTicks(true);
+		min_count_cutoff_slider.setMajorTickSpacing(10);
+		min_count_cutoff_slider.setMinorTickSpacing(5);
+		max_count_cutoff_slider.setPaintTicks(true);
+		max_count_cutoff_slider.setMajorTickSpacing(10);
+		max_count_cutoff_slider.setMinorTickSpacing(5);
+		Utilites.addGridComponent(min_cutoff_panel, min_count_cutoff_slider, 0, 0, 2, 1, 1.0, 1.0);
+		Utilites.addGridComponent(min_cutoff_panel, min_cutoff_label, 0, 1, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(min_cutoff_panel, min_count_cutoff_text, 1, 1, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(max_cutoff_panel, max_count_cutoff_slider, 0, 0, 2, 1, 1.0, 1.0);
+		Utilites.addGridComponent(max_cutoff_panel, max_cutoff_label, 0, 1, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(max_cutoff_panel, max_count_cutoff_text, 1, 1, 1, 1, 1.0, 1.0);
+		min_cutoff_panel.setBorder(BorderFactory.createTitledBorder("Min Count Percentage Cutoff"));
+		max_cutoff_panel.setBorder(BorderFactory.createTitledBorder("Max Count Percentage Cutoff"));
+		// Action listeners for count cutoff percentages:
+		min_count_cutoff_text.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String text = min_count_cutoff_text.getText();
+				int new_min = Integer.parseInt(text);
+				if (new_min > min_count_cutoff_slider.getMaximum())
+					new_min = min_count_cutoff_slider.getMaximum();
+				if (new_min < 0)
+					new_min = 0;
+				min_count_cutoff_slider.setValue(new_min);
+				max_count_cutoff_slider.setMinimum(new_min);
+			}
+		});
+		min_count_cutoff_slider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int new_min = min_count_cutoff_slider.getValue();
+				min_count_cutoff_text.setText("" + new_min);
+				max_count_cutoff_slider.setMinimum(new_min);
+			}
+		});
+		max_count_cutoff_text.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String text = max_count_cutoff_text.getText();
+				int new_max = Integer.parseInt(text);
+				if (new_max > max_count_cutoff_slider.getMaximum())
+					new_max = max_count_cutoff_slider.getMaximum();
+				if (new_max < 0)
+					new_max = 0;
+				max_count_cutoff_slider.setValue(new_max);
+				min_count_cutoff_slider.setMaximum(new_max);
+			}
+		});
+		max_count_cutoff_slider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int new_min = max_count_cutoff_slider.getValue();
+				max_count_cutoff_text.setText("" + new_min);
+				min_count_cutoff_slider.setMaximum(new_min);
+			}
+		});
+
 		continuous_count_toggle = new JCheckBox("Continuous Count", true);
 		continuous_count_toggle.addActionListener(new ActionListener() {
 			@Override
@@ -106,19 +174,31 @@ public class ImageController extends JPanel {
 		count_display = new JLabel("Count: ");
 		JPanel count_control_panel = new JPanel();
 		count_control_panel.setLayout(new GridBagLayout());
+
+		// Adding the grey threshold controls:
 		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_slider, 0, 0, 2, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
 		Utilites.addGridComponent(count_control_panel, thresh_label, 0, 1, 1, 1, 0.5, 1.0, GridBagConstraints.CENTER,
 				GridBagConstraints.BOTH);
 		Utilites.addGridComponent(count_control_panel, blob_grey_thresh_text, 1, 1, 1, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+
+		// Adding the size changing controls:
 		Utilites.addGridComponent(count_control_panel, size_control_label, 0, 2, 1, 1, 0.5, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
 		Utilites.addGridComponent(count_control_panel, blob_size_control, 1, 2, 1, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-		Utilites.addGridComponent(count_control_panel, continuous_count_toggle, 0, 3, 2, 1, 1.0, 1.0,
+
+		// Adding the count cutoff controls:
+		Utilites.addGridComponent(count_control_panel, min_cutoff_panel, 0, 3, 2, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-		Utilites.addGridComponent(count_control_panel, count_display, 0, 4, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+		Utilites.addGridComponent(count_control_panel, max_cutoff_panel, 0, 4, 2, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+
+		// Adding count display and continuous count toggle:
+		Utilites.addGridComponent(count_control_panel, continuous_count_toggle, 0, 5, 2, 1, 1.0, 1.0,
+				GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+		Utilites.addGridComponent(count_control_panel, count_display, 0, 6, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
 				GridBagConstraints.BOTH);
 		count_control_panel.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
 
@@ -129,6 +209,7 @@ public class ImageController extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				image.set_index_to_draw(0);
+				image.set_display_mode(0);
 			}
 		});
 		JRadioButton filtered_image_draw_button = new JRadioButton("Filtered Image");
@@ -136,16 +217,27 @@ public class ImageController extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				image.set_index_to_draw(-1);
+				image.set_display_mode(1);
+			}
+		});
+		JRadioButton count_level_draw_button = new JRadioButton("Count Filters");
+		count_level_draw_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.set_display_mode(2);
 			}
 		});
 		ButtonGroup group = new ButtonGroup();
 		group.add(original_image_draw_button);
 		group.add(filtered_image_draw_button);
+		group.add(count_level_draw_button);
 		group.setSelected(filtered_image_draw_button.getModel(), true);
 
 		Utilites.addGridComponent(image_select_panel, original_image_draw_button, 0, 0, 1, 1, 1, 1,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
 		Utilites.addGridComponent(image_select_panel, filtered_image_draw_button, 0, 1, 1, 1, 1, 1,
+				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(image_select_panel, count_level_draw_button, 0, 2, 1, 1, 1, 1,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
 		image_select_panel.setBorder(BorderFactory.createTitledBorder("Image Draw Control"));
 
