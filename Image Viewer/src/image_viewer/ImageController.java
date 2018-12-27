@@ -66,6 +66,14 @@ public class ImageController extends JPanel {
 				window.close_current_image();
 			}
 		});
+		JButton btn_recenter_image = new JButton("Recenter Image");
+		btn_recenter_image.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.recenter_display();
+			}
+		});
+		
 		blob_grey_thresh_slider = new JSlider(5, 255, 100);
 		blob_grey_thresh_slider.setToolTipText("Threshold Slider");
 		blob_grey_thresh_slider.setPaintTicks(true);
@@ -235,24 +243,34 @@ public class ImageController extends JPanel {
 				image.set_display_mode(1);
 			}
 		});
-		JRadioButton count_level_draw_button = new JRadioButton("Count Filters");
-		count_level_draw_button.addActionListener(new ActionListener() {
+		JRadioButton small_count_button = new JRadioButton("Small Counts");
+		small_count_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				image.set_display_mode(2);
 			}
 		});
+		JRadioButton large_count_button = new JRadioButton("Large Counts");
+		large_count_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.set_display_mode(3);
+			}
+		});
 		ButtonGroup group = new ButtonGroup();
 		group.add(original_image_draw_button);
 		group.add(filtered_image_draw_button);
-		group.add(count_level_draw_button);
+		group.add(small_count_button);
+		group.add(large_count_button);
 		group.setSelected(filtered_image_draw_button.getModel(), true);
 
 		Utilites.addGridComponent(image_select_panel, original_image_draw_button, 0, 0, 1, 1, 1, 1,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
 		Utilites.addGridComponent(image_select_panel, filtered_image_draw_button, 0, 1, 1, 1, 1, 1,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(image_select_panel, count_level_draw_button, 0, 2, 1, 1, 1, 1,
+		Utilites.addGridComponent(image_select_panel, small_count_button, 0, 2, 1, 1, 1, 1,
+				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(image_select_panel, large_count_button, 0, 3, 1, 1, 1, 1,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
 		image_select_panel.setBorder(BorderFactory.createTitledBorder("Image Draw Control"));
 
@@ -260,7 +278,9 @@ public class ImageController extends JPanel {
 				GridBagConstraints.HORIZONTAL);
 		Utilites.addGridComponent(control_panel, image_select_panel, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
 				GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(control_panel, btn_close_image, 0, 2, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+		Utilites.addGridComponent(control_panel, btn_recenter_image, 0, 2, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, btn_close_image, 0, 3, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
 				GridBagConstraints.HORIZONTAL);
 
 		JPanel filter_panel = new JPanel();

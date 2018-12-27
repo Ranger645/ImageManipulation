@@ -1,19 +1,21 @@
 package algos;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import filters.F_Combination;
-import filters.F_Contrast_Increase;
+import filters.F_Color_Average_Square;
 import filters.F_Multiply;
 import filters.F_Threshold;
 import filters.Filter;
 
 public class BlobFinder {
+
+	private static BufferedImage small_pre_filter, small_post_filter, large_pre_filter, large_post_filter;
 
 	public static List<Blob> find_blobs_min_max(BufferedImage image, int grey_thresh, int min_blob_size, int min,
 			int max, double min_mult, int min_blur, int max_thresh) {
@@ -52,35 +54,78 @@ public class BlobFinder {
 		int small_count = (int) (blobs.size() * (min / 100.0));
 		int large_start = blobs.size() - (int) (blobs.size() * ((100.0 - max) / 100.0));
 
-		// So we have to rerun these through the algorithm along with the middle size
-		// points to see if any can be merged. This will entail a multiply and then a
-		// blur. Both of these filters will be customizable.
-		BufferedImage small_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-		for (int i = 0; i < small_count; i++) {
-			if (i < small_count)
-				blobs.get(i).setType(-1);
-			for (Point p : blobs.get(i).points) {
-				small_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
-			}
+		// Getting the average pixel count per blob:
+		double average = 0;
+		int count = 0;
+		for (int i = small_count; i < large_start; i++) {
+			average += blobs.get(small_count).points.size();
+			count++;
+		}
+		if (count != 0)
+			average = average / count;
+		System.out.println("Average = " + average);
+
+		// Flooring the size of each blob with the average size of the middle blobs.
+		for (int i = large_start; i < blobs.size(); i++) {
+			blobs.get(i).set_count((int) (blobs.get(i).points.size() / average));
+			blobs.get(i).setType(1);
 		}
 
 		// Now we have to rerun the big ones through the algorithm. Before we do that,
 		// they have to have their contrast increased by a user configurable value.
-		BufferedImage large_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-		while (large_start < blobs.size()) {
-			blobs.get(large_start).setType(1);
-			for (Point p : blobs.get(large_start).points) {
-				large_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
+//		BufferedImage large_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+//		Graphics2D g = large_blob_image.createGraphics();
+//		g.setPaint(Color.BLACK);
+//		g.fillRect(0, 0, large_blob_image.getWidth(), large_blob_image.getHeight());
+//		while (large_start < blobs.size()) {
+//			blobs.get(large_start).setType(1);
+//			for (Point p : blobs.get(large_start).points) {
+//				large_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
+//			}
+//			blobs.remove(large_start);
+//		}
+//		large_pre_filter = large_blob_image.getSubimage(0, 0, large_blob_image.getWidth(),
+//				large_blob_image.getHeight());
+//		Filter large_filter = new F_Threshold(max_thresh);
+//		large_blob_image = large_filter.filter(large_blob_image);
+//		List<Blob> large_blobs = BlobFinder.find_blobs_min_max(large_blob_image, Math.max(grey_thresh, max_thresh),
+//				min_blob_size, -1, -1, min_mult, min_blur, max_thresh);
+//		for (Blob b : large_blobs)
+//			b.setType(1);
+//		blobs.addAll(large_blobs);
+//		large_post_filter = large_blob_image.getSubimage(0, 0, large_blob_image.getWidth(),
+//				large_blob_image.getHeight());
+
+		// So we have to rerun these through the algorithm along with the middle size
+		// points to see if any can be merged. This will entail a multiply and then a
+		// blur. Both of these filters will be customizable.
+		BufferedImage small_blob_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+		Graphics2D g = small_blob_image.createGraphics();
+		g.setPaint(Color.BLACK);
+		g.fillRect(0, 0, small_blob_image.getWidth(), small_blob_image.getHeight());
+		for (int i = 0; i < small_count; i++) {
+			blobs.get(0).setType(-1);
+			for (Point p : blobs.get(0).points) {
+				small_blob_image.setRGB(p.x, p.y, image.getRGB(p.x, p.y));
 			}
-			blobs.remove(large_start);
+			blobs.remove(0);
 		}
-		Filter large_filter = new F_Threshold(max_thresh);
-		large_blob_image = large_filter.filter(large_blob_image);
-		List<Blob> large_blobs = BlobFinder.find_blobs_min_max(large_blob_image, grey_thresh, min_blob_size, -1, -1, min_mult, min_blur, max_thresh);
-		for (Blob b : large_blobs)
-			b.setType(1);
-		blobs.addAll(large_blobs);
-				
+		small_pre_filter = small_blob_image.getSubimage(0, 0, small_blob_image.getWidth(),
+				small_blob_image.getHeight());
+		F_Multiply small_filter_mult = new F_Multiply();
+		F_Color_Average_Square small_filter_avg = new F_Color_Average_Square();
+		small_filter_avg.set_radius(min_blur);
+		small_filter_mult.set_values(min_mult, min_mult, min_mult);
+		small_blob_image = small_filter_mult.filter(small_blob_image);
+		// small_blob_image = small_filter_avg.filter(small_blob_image);
+		List<Blob> small_blobs = BlobFinder.find_blobs_min_max(small_blob_image, grey_thresh, min_blob_size, -1, -1,
+				min_mult, min_blur, max_thresh);
+		for (Blob b : small_blobs)
+			b.setType(-1);
+		blobs.addAll(small_blobs);
+		small_post_filter = small_blob_image.getSubimage(0, 0, small_blob_image.getWidth(),
+				small_blob_image.getHeight());
+
 		return blobs;
 	}
 
@@ -250,36 +295,36 @@ public class BlobFinder {
 			}
 			set_val(0, test, pixels, width);
 
-//			// top right
-//			test = new Point(current.x + 1, current.y - 1);
-//			if (get_val(test, pixels, width) >= grey_thresh) {
-//				points_to_test.add(test);
-//				surrounding_count++;
-//			}
-//			set_val(0, test, pixels, width);
-//			// bottom right
-//			test = new Point(current.x + 1, current.y + 1);
-//			if (get_val(test, pixels, width) >= grey_thresh) {
-//				points_to_test.add(test);
-//				surrounding_count++;
-//			}
-//			set_val(0, test, pixels, width);
-//
-//			// top left
-//			test = new Point(current.x - 1, current.y - 1);
-//			if (get_val(test, pixels, width) >= grey_thresh) {
-//				points_to_test.add(test);
-//				surrounding_count++;
-//			}
-//			set_val(0, test, pixels, width);
-//
-//			// bottom left
-//			test = new Point(current.x - 1, current.y + 1);
-//			if (get_val(test, pixels, width) >= grey_thresh) {
-//				points_to_test.add(test);
-//				surrounding_count++;
-//			}
-//			set_val(0, test, pixels, width);
+			// top right
+			test = new Point(current.x + 1, current.y - 1);
+			if (get_val(test, pixels, width) >= grey_thresh) {
+				points_to_test.add(test);
+				surrounding_count++;
+			}
+			set_val(0, test, pixels, width);
+			// bottom right
+			test = new Point(current.x + 1, current.y + 1);
+			if (get_val(test, pixels, width) >= grey_thresh) {
+				points_to_test.add(test);
+				surrounding_count++;
+			}
+			set_val(0, test, pixels, width);
+
+			// top left
+			test = new Point(current.x - 1, current.y - 1);
+			if (get_val(test, pixels, width) >= grey_thresh) {
+				points_to_test.add(test);
+				surrounding_count++;
+			}
+			set_val(0, test, pixels, width);
+
+			// bottom left
+			test = new Point(current.x - 1, current.y + 1);
+			if (get_val(test, pixels, width) >= grey_thresh) {
+				points_to_test.add(test);
+				surrounding_count++;
+			}
+			set_val(0, test, pixels, width);
 
 			if (surrounding_count != 8)
 				edge_points.add(current);
@@ -297,6 +342,22 @@ public class BlobFinder {
 		if (p.x < 0 || p.y < 0 || p.x >= width || p.y >= pixels.length / width)
 			return;
 		pixels[p.y * width + p.x] = val;
+	}
+
+	public static BufferedImage getSmall_pre_filter() {
+		return small_pre_filter;
+	}
+
+	public static BufferedImage getSmall_post_filter() {
+		return small_post_filter;
+	}
+
+	public static BufferedImage getLarge_pre_filter() {
+		return large_pre_filter;
+	}
+
+	public static BufferedImage getLarge_post_filter() {
+		return large_post_filter;
 	}
 
 }

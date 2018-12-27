@@ -27,28 +27,41 @@ public class Viewer extends JPanel {
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();
 
+	private ImageZoom image_transform;
 	private boolean continuous_blob_finding = true;
 	private int display_index = -1;
 	private int display_mode = 1;
 	public int zoom_percentage = 100;
 
-	public PointManager points = null;
+	public List<Blob> last_blobs;
 	public ImageController gui_controller = null;
 	public String KEY = "";
 
 	public Viewer(String key) {
 		super();
-		points = new PointManager();
 		gui_controller = new ImageController(this);
-		this.addMouseWheelListener(new ImageZoom(this));
+		this.addMouseWheelListener(image_transform = new ImageZoom(this));
+		this.addMouseListener(image_transform);
+		this.addMouseMotionListener(image_transform);
 		this.KEY = key;
 	}
 
 	public void paint(Graphics g) {
 		if (image_steps.size() > 0) {
 			BufferedImage to_draw = null;
-			if (this.display_mode == 2) {
-				// Render mode that causes the different count levels to be displayed.
+			if (this.display_mode == 3 || this.display_mode == 2) {
+				// Render mode for seeing different levels of large and small count
+				BufferedImage pre = null, post = null;
+				if (this.display_mode == 2) {
+					// Small count display
+					pre = BlobFinder.getSmall_pre_filter();
+					post = BlobFinder.getSmall_post_filter();
+				} else {
+					// Large count display
+					pre = BlobFinder.getLarge_pre_filter();
+					post = BlobFinder.getLarge_post_filter();
+				}
+
 				BufferedImage original = image_steps.get(image_steps.size() - 1);
 				to_draw = new BufferedImage(original.getWidth() * 2 + 10, original.getHeight() * 2 + 10,
 						BufferedImage.TYPE_4BYTE_ABGR);
@@ -57,15 +70,13 @@ public class Viewer extends JPanel {
 				draw_graphics.drawImage(original, 0, 0, null);
 
 				if (small_blob_image != null)
-					draw_graphics.drawImage(small_blob_image, 0, original.getHeight() + 10, null);
+					draw_graphics.drawImage(pre, 0, original.getHeight() + 10, null);
 				if (large_blob_image != null)
-					draw_graphics.drawImage(large_blob_image, original.getWidth() + 10, original.getHeight() + 10,
-							null);
+					draw_graphics.drawImage(post, original.getWidth() + 10, original.getHeight() + 10, null);
 				if (combined_blob_image != null)
 					draw_graphics.drawImage(combined_blob_image, original.getWidth() + 10, 0, null);
 
-			} else // Normal rendering
-			if (display_index < 0 || display_index >= image_steps.size())
+			} else if (display_index < 0 || display_index >= image_steps.size())
 				to_draw = image_steps.get(image_steps.size() - 1);
 			else
 				to_draw = image_steps.get(display_index);
@@ -73,16 +84,20 @@ public class Viewer extends JPanel {
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
 			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
 
-			int x = this.getWidth() / 2 - width / 2;
-			int y = this.getHeight() / 2 - height / 2;
+			Point offset_point = image_transform.get_image_position();
+			int x = this.getWidth() / 2 - width / 2 + offset_point.x;
+			int y = this.getHeight() / 2 - height / 2 + offset_point.y;
+			
 			g.drawImage(to_draw, x, y, width, height, null);
-			points.paint_points(g, x, y, zoom_percentage);
+			int blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
+			
+			WorkingBar.set_text(String.format("Counted %d blobs with a threshhold of %d and a size of %d.\n", blob_count,
+					this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size()));
 		}
 	}
 
 	public void point_out_blobs() {
-		points.clear_points();
-		List<Blob> blobs = BlobFinder.find_blobs_min_max(image_steps.get(image_steps.size() - 1),
+		last_blobs = BlobFinder.find_blobs_min_max(image_steps.get(image_steps.size() - 1),
 				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(),
 				this.gui_controller.get_count_min(), this.gui_controller.get_count_max(), 3, 5,
 				this.gui_controller.get_max_threshold());
@@ -105,36 +120,25 @@ public class Viewer extends JPanel {
 
 		int white_rgb = Color.WHITE.getRGB();
 
-		for (Blob b : blobs) {
-			points.addPoint(b.compute_average_point(),
-					b.getType() == 0 ? Color.CYAN : b.getType() < 0 ? Color.YELLOW : Color.RED);
-
+		for (Blob b : last_blobs) {
 			if (display_mode == 2) {
-				// Painting the large and small blob images if need be.
-				if (b.getType() > 0) {
-					// Painting the large image blob
-					for (Point p : b.points) {
-						large_blob_image.setRGB(p.x, p.y, white_rgb);
-						combined_blob_image.setRGB(p.x, p.y, white_rgb);
-					}
-				} else if (b.getType() < 0) {
+				if (b.getType() < 0)
 					// Painting the small image
 					for (Point p : b.points) {
 						small_blob_image.setRGB(p.x, p.y, white_rgb);
 						combined_blob_image.setRGB(p.x, p.y, white_rgb);
 					}
-				} else {
+			} else if (display_mode == 3) {
+				if (b.getType() > 0)
+					// Painting the small image
 					for (Point p : b.points) {
+						small_blob_image.setRGB(p.x, p.y, white_rgb);
 						combined_blob_image.setRGB(p.x, p.y, white_rgb);
 					}
-				}
 			}
 		}
 
-		WorkingBar.set_text(String.format("Counted %d blobs with a threshhold of %d and a size of %d.\n", blobs.size(),
-				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size()));
-
-		this.gui_controller.update_count(blobs.size());
+		this.gui_controller.update_count(last_blobs.size());
 		this.repaint();
 	}
 
@@ -216,8 +220,8 @@ public class Viewer extends JPanel {
 	public void close() {
 		filters.clear();
 		image_steps.clear();
-		points.clear_points();
-		points = null;
+		last_blobs.clear();
+		last_blobs = null;
 		filters = null;
 		image_steps = null;
 	}
@@ -233,6 +237,10 @@ public class Viewer extends JPanel {
 	public void set_display_mode(int mode) {
 		this.display_mode = mode;
 		this.repaint();
+	}
+	
+	public void recenter_display() {
+		this.image_transform.recenter();
 	}
 
 }

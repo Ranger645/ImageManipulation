@@ -281,7 +281,7 @@ public class Window extends JFrame {
 		clear_count.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				image_viewers.get(tabs.getSelectedIndex()).points.clear_points();
+				image_viewers.get(tabs.getSelectedIndex()).last_blobs.clear();
 				image_viewers.get(tabs.getSelectedIndex()).repaint();
 			}
 		});

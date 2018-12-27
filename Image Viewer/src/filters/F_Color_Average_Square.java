@@ -141,4 +141,8 @@ public class F_Color_Average_Square extends Filter {
 		this.control.setValue(this.RADIUS);
 	}
 
+	public void set_radius(int radius) {
+		this.RADIUS = radius;
+	}
+
 }
