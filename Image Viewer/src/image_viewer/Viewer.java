@@ -3,6 +3,8 @@ package image_viewer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +16,13 @@ import javax.swing.JPanel;
 
 import algos.Blob;
 import algos.BlobFinder;
+import counters.C_Default;
+import counters.Counter;
 import filters.Filter;
-import filters.FilterManager;
 
 public class Viewer extends JPanel {
+
+	private Counter counter;
 
 	// The list of images that are the different steps in the filter process.
 	private List<BufferedImage> image_steps = new ArrayList<BufferedImage>();
@@ -39,6 +44,17 @@ public class Viewer extends JPanel {
 
 	public Viewer(String key) {
 		super();
+
+		// COUNTER INITIALIZATION:
+		this.counter = new C_Default();
+		JPanel count_control_panel = this.counter.create_control_panel();
+		this.counter.add_display_update_listener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				point_out_blobs();
+			}
+		});
+
 		gui_controller = new ImageController(this);
 		this.addMouseWheelListener(image_transform = new ImageZoom(this));
 		this.addMouseListener(image_transform);
@@ -87,20 +103,16 @@ public class Viewer extends JPanel {
 			Point offset_point = image_transform.get_image_position();
 			int x = this.getWidth() / 2 - width / 2 + offset_point.x;
 			int y = this.getHeight() / 2 - height / 2 + offset_point.y;
-			
+
 			g.drawImage(to_draw, x, y, width, height, null);
 			int blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
-			
-			WorkingBar.set_text(String.format("Counted %d blobs with a threshhold of %d and a size of %d.\n", blob_count,
-					this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size()));
+
+			WorkingBar.set_text(String.format("Counted %d blobs.\n", blob_count));
 		}
 	}
 
 	public void point_out_blobs() {
-		last_blobs = BlobFinder.find_blobs_min_max(image_steps.get(image_steps.size() - 1),
-				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(),
-				this.gui_controller.get_count_min(), this.gui_controller.get_count_max(), 3, 5,
-				this.gui_controller.get_max_threshold());
+		last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
 
 		BufferedImage original = image_steps.get(image_steps.size() - 1);
 		int width = original.getWidth();
@@ -137,8 +149,7 @@ public class Viewer extends JPanel {
 					}
 			}
 		}
-
-		this.gui_controller.update_count(last_blobs.size());
+		
 		this.repaint();
 	}
 
@@ -238,9 +249,18 @@ public class Viewer extends JPanel {
 		this.display_mode = mode;
 		this.repaint();
 	}
-	
+
 	public void recenter_display() {
 		this.image_transform.recenter();
+	}
+	
+	public Counter get_counter() {
+		return this.counter;
+	}
+	
+	public void set_counter(Counter c) {
+		this.counter = c;
+		this.gui_controller.update_counter();
 	}
 
 }

@@ -10,16 +10,12 @@ import java.util.List;
 
 import filters.F_Color_Average_Square;
 import filters.F_Multiply;
-import filters.F_Threshold;
-import filters.Filter;
 
 public class BlobFinder {
 
 	private static BufferedImage small_pre_filter, small_post_filter, large_pre_filter, large_post_filter;
 
-	public static List<Blob> find_blobs_min_max(BufferedImage image, int grey_thresh, int min_blob_size, int min,
-			int max, double min_mult, int min_blur, int max_thresh) {
-
+	public static List<Blob> find_blobs(BufferedImage image, int grey_thresh, int min_blob_size) {
 		final int width = image.getWidth();
 		final int height = image.getHeight();
 
@@ -44,6 +40,12 @@ public class BlobFinder {
 			}
 		}
 
+		return blobs;
+	}
+
+	public static List<Blob> find_blobs_min_max(BufferedImage image, int grey_thresh, int min_blob_size, int min,
+			int max, double min_mult, int min_blur, int max_thresh) {
+		List<Blob> blobs = BlobFinder.find_blobs(image, grey_thresh, min_blob_size);
 		if (max < 0 || min < 0)
 			return blobs;
 

@@ -45,7 +45,7 @@ public class Window extends JFrame {
 	private Window self = null;
 
 	public FilterManager filter_manager = null;
-	
+
 	public static final File DOCUMENTS = new File(System.getProperty("user.home") + File.separator + "Documents");
 	public static final File DOWNLOADS = new File(System.getProperty("user.home") + File.separator + "Downloads");
 
@@ -89,151 +89,151 @@ public class Window extends JFrame {
 				close_current_image();
 			}
 		});
-		JMenuItem save_filter_list = new JMenuItem("Save Filter File");
-		save_filter_list.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Viewer selected = get_selected_viewer();
-				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "filter", self);
-				if (filter_file == null)
-					return;
-				
-				try {
-					PrintWriter file_write = new PrintWriter(filter_file);
-					file_write.print(filter_manager.encode_filters(get_selected_viewer().get_filters()));
-					file_write.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		JMenuItem save_count_file = new JMenuItem("Save Count File");
-		save_count_file.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Viewer selected = get_selected_viewer();
-				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "count", self);
-				if (filter_file == null)
-					return;
-				
-				try {
-					PrintWriter file_write = new PrintWriter(filter_file);
-					file_write.println(selected.KEY + "," + selected.gui_controller.get_grey_thresh() + ","
-							+ selected.gui_controller.get_blob_size());
-					file_write.print(filter_manager.encode_filters(selected.get_filters()));
-					file_write.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		JMenuItem save_image_batch_file = new JMenuItem("Save Batch Settings File");
-		save_image_batch_file.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File batch_file = FileUtilities.showFileSaveDialog(DOCUMENTS, "batch", "batch", self);
-				if (batch_file == null)
-					return;
-				
-				try {
-					PrintWriter file_write = new PrintWriter(batch_file);
-					
-					// Printing the header:
-					file_write.println(batch_file.getName() + "," + image_viewers.size());
-					file_write.println("#####");
-					
-					// Printing the Viewers each separated by Lines with #####
-					for (Viewer v : image_viewers) {
-						file_write.println(v.KEY + "," + v.gui_controller.get_grey_thresh() + ","
-								+ v.gui_controller.get_blob_size());
-						file_write.print(filter_manager.encode_filters(v.get_filters()));
-						file_write.println("#####");
-					}
-					file_write.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		JMenuItem open_filter_list = new JMenuItem("Apply Filter File");
-		open_filter_list.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "filter", self);
-				if (filter_file == null)
-					return;
-				
-				try {
-					FileInputStream file_read = new FileInputStream(filter_file);
-					byte[] bytes = file_read.readAllBytes();
-					String values = new String(bytes);
-
-					get_selected_viewer().clear_filters();
-					List<Filter> filters = filter_manager.decode_filters(values);
-
-					for (Filter f : filters)
-						get_selected_viewer().add_filter(f);
-
-					file_read.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		JMenuItem open_count_file = new JMenuItem("Apply Count File");
-		open_count_file.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "count", self);
-				if (filter_file == null)
-					return;
-				
-				try {
-					FileInputStream file_read = new FileInputStream(filter_file);
-					byte[] bytes = file_read.readAllBytes();
-					String values = new String(bytes);
-
-					String header = values.substring(0, values.indexOf("\n"));
-					String[] header_values = header.split(",");
-					values = values.substring(values.indexOf("\n") + 1);
-
-					int index = -1;
-					for (int i = 0; i < tabs.getTabCount(); i++)
-						if (tabs.getTitleAt(i).equals(header_values[0]))
-							index = i;
-
-					Viewer to_apply_to = null;
-					if (index != -1) {
-						to_apply_to = (Viewer) tabs.getComponentAt(index);
-					} else {
-						to_apply_to = get_selected_viewer();
-					}
-
-					to_apply_to.clear_filters();
-					to_apply_to.gui_controller.set_grey_thresh(Integer.parseInt(header_values[1]));
-					to_apply_to.gui_controller.set_blob_size(Integer.parseInt(header_values[2]));
-					List<Filter> filters = filter_manager.decode_filters(values);
-
-					for (Filter f : filters)
-						to_apply_to.add_filter(f);
-
-					file_read.close();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+//		JMenuItem save_filter_list = new JMenuItem("Save Filter File");
+//		save_filter_list.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				Viewer selected = get_selected_viewer();
+//				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "filter", self);
+//				if (filter_file == null)
+//					return;
+//				
+//				try {
+//					PrintWriter file_write = new PrintWriter(filter_file);
+//					file_write.print(filter_manager.encode_filters(get_selected_viewer().get_filters()));
+//					file_write.close();
+//				} catch (FileNotFoundException e1) {
+//					e1.printStackTrace();
+//				}
+//			}
+//		});
+//		JMenuItem save_count_file = new JMenuItem("Save Count File");
+//		save_count_file.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				Viewer selected = get_selected_viewer();
+//				File filter_file = FileUtilities.showFileSaveDialog(DOCUMENTS, selected.KEY, "count", self);
+//				if (filter_file == null)
+//					return;
+//				
+//				try {
+//					PrintWriter file_write = new PrintWriter(filter_file);
+//					file_write.println(selected.KEY + "," + selected.gui_controller.get_grey_thresh() + ","
+//							+ selected.gui_controller.get_blob_size());
+//					file_write.print(filter_manager.encode_filters(selected.get_filters()));
+//					file_write.close();
+//				} catch (FileNotFoundException e1) {
+//					e1.printStackTrace();
+//				}
+//			}
+//		});
+//		JMenuItem save_image_batch_file = new JMenuItem("Save Batch Settings File");
+//		save_image_batch_file.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				File batch_file = FileUtilities.showFileSaveDialog(DOCUMENTS, "batch", "batch", self);
+//				if (batch_file == null)
+//					return;
+//				
+//				try {
+//					PrintWriter file_write = new PrintWriter(batch_file);
+//					
+//					// Printing the header:
+//					file_write.println(batch_file.getName() + "," + image_viewers.size());
+//					file_write.println("#####");
+//					
+//					// Printing the Viewers each separated by Lines with #####
+//					for (Viewer v : image_viewers) {
+//						file_write.println(v.KEY + "," + v.gui_controller.get_grey_thresh() + ","
+//								+ v.gui_controller.get_blob_size());
+//						file_write.print(filter_manager.encode_filters(v.get_filters()));
+//						file_write.println("#####");
+//					}
+//					file_write.close();
+//				} catch (FileNotFoundException e1) {
+//					e1.printStackTrace();
+//				}
+//			}
+//		});
+//		JMenuItem open_filter_list = new JMenuItem("Apply Filter File");
+//		open_filter_list.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "filter", self);
+//				if (filter_file == null)
+//					return;
+//				
+//				try {
+//					FileInputStream file_read = new FileInputStream(filter_file);
+//					byte[] bytes = file_read.readAllBytes();
+//					String values = new String(bytes);
+//
+//					get_selected_viewer().clear_filters();
+//					List<Filter> filters = filter_manager.decode_filters(values);
+//
+//					for (Filter f : filters)
+//						get_selected_viewer().add_filter(f);
+//
+//					file_read.close();
+//				} catch (FileNotFoundException e1) {
+//					e1.printStackTrace();
+//				} catch (IOException e1) {
+//					e1.printStackTrace();
+//				}
+//			}
+//		});
+//		JMenuItem open_count_file = new JMenuItem("Apply Count File");
+//		open_count_file.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				File filter_file = FileUtilities.showFileOpenDialog(DOCUMENTS, "count", self);
+//				if (filter_file == null)
+//					return;
+//				
+//				try {
+//					FileInputStream file_read = new FileInputStream(filter_file);
+//					byte[] bytes = file_read.readAllBytes();
+//					String values = new String(bytes);
+//
+//					String header = values.substring(0, values.indexOf("\n"));
+//					String[] header_values = header.split(",");
+//					values = values.substring(values.indexOf("\n") + 1);
+//
+//					int index = -1;
+//					for (int i = 0; i < tabs.getTabCount(); i++)
+//						if (tabs.getTitleAt(i).equals(header_values[0]))
+//							index = i;
+//
+//					Viewer to_apply_to = null;
+//					if (index != -1) {
+//						to_apply_to = (Viewer) tabs.getComponentAt(index);
+//					} else {
+//						to_apply_to = get_selected_viewer();
+//					}
+//
+//					to_apply_to.clear_filters();
+//					to_apply_to.gui_controller.set_grey_thresh(Integer.parseInt(header_values[1]));
+//					to_apply_to.gui_controller.set_blob_size(Integer.parseInt(header_values[2]));
+//					List<Filter> filters = filter_manager.decode_filters(values);
+//
+//					for (Filter f : filters)
+//						to_apply_to.add_filter(f);
+//
+//					file_read.close();
+//				} catch (FileNotFoundException e1) {
+//					e1.printStackTrace();
+//				} catch (IOException e1) {
+//					e1.printStackTrace();
+//				}
+//			}
+//		});
 		file_menu.add(openoption);
 		file_menu.add(opennd2option);
-		file_menu.add(open_filter_list);
-		file_menu.add(open_count_file);
-		file_menu.add(save_filter_list);
-		file_menu.add(save_count_file);
-		file_menu.add(save_image_batch_file);
+//		file_menu.add(open_filter_list);
+//		file_menu.add(open_count_file);
+//		file_menu.add(save_filter_list);
+//		file_menu.add(save_count_file);
+//		file_menu.add(save_image_batch_file);
 		file_menu.addSeparator();
 		file_menu.add(closeoption);
 
@@ -426,7 +426,7 @@ public class Window extends JFrame {
 
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_5.png");
 		String[] name_split = name.split("\\.");
-		
+
 		Viewer image_viewer = new Viewer(name_split[0] + "_" + tabs.getTabCount());
 
 		path += name;
