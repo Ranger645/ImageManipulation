@@ -37,6 +37,7 @@ public class ImageController extends JPanel {
 	private Viewer image = null;
 	private Window window = null;
 	private Counter counter = null;
+	private JPanel count_control_panel;
 
 	private DefaultListModel<String> model = null;
 	private JList<String> filter_list = null;
@@ -52,7 +53,8 @@ public class ImageController extends JPanel {
 		this.image = image;
 		this.setLayout(new GridBagLayout());
 		
-		JPanel count_control_panel = this.image.get_counter().create_control_panel();
+		count_control_panel = new JPanel();
+		this.update_counter();
 
 		JPanel control_panel = new JPanel();
 		control_panel.setLayout(new GridBagLayout());
@@ -206,8 +208,8 @@ public class ImageController extends JPanel {
 		Utilites.addGridComponent(filter_panel, filter_control_panel, 0, 8, 1, 7, 1.0, 1.0, GridBagConstraints.SOUTH,
 				GridBagConstraints.BOTH);
 
-		control_tabs.addTab(FILTER, filter_panel);
 		control_tabs.addTab(CONTROL, control_panel);
+		control_tabs.addTab(FILTER, filter_panel);
 		Utilites.addGridComponent(this, control_tabs, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
 				GridBagConstraints.BOTH);
 	}
@@ -254,7 +256,8 @@ public class ImageController extends JPanel {
 	}
 
 	public void update_counter() {
-		
+		this.count_control_panel.removeAll();
+		this.count_control_panel.add(image.get_counter().create_control_panel());
 	}
 
 }

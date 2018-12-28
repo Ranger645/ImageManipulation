@@ -45,8 +45,14 @@ public abstract class Counter {
 	public abstract JPanel create_control_panel();
 
 	/**
+	 * Returns a clone of this counter
+	 */
+	public abstract Counter clone();
+
+	/**
 	 * Creates the default J-panel with just the grey threshold control and blob
-	 * size control mechanisms.
+	 * size control mechanisms. This is a panel using a grid bag layout. There is a
+	 * 2 x 2 square at the top occupied by the default components.
 	 * 
 	 * @return the constructed panel.
 	 */

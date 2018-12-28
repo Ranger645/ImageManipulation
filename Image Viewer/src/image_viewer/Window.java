@@ -37,7 +37,7 @@ import utilities.FileUtilities;
 
 public class Window extends JFrame {
 
-	private static final String TITLE = "IMAGE VIEWER v1.0";
+	private static final String TITLE = "IMAGE VIEWER v1.1";
 
 	private List<Viewer> image_viewers = new ArrayList<>();
 	private JTabbedPane tabs = new JTabbedPane();
@@ -422,9 +422,13 @@ public class Window extends JFrame {
 	}
 
 	public void open_image() {
-		String path = "res/";
-
 		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_5.png");
+		
+		this.open_image(name);
+	}
+	
+	public void open_image(String name) {
+		String path = "res/";
 		String[] name_split = name.split("\\.");
 
 		Viewer image_viewer = new Viewer(name_split[0] + "_" + tabs.getTabCount());

@@ -21,6 +21,7 @@ public class SliderTextCombination extends JPanel {
 	public static final int DEFAULT_TEXT_WIDTH = 5, DEFAULT_SMALL_INTERVAL = 5, DEFAULT_LARGE_INTERVAL = 10;
 	public static final boolean DEFAULT_ENABLE_BORDER = false, DEFAULT_PAINT_TICKS = true;
 
+	private String title;
 	// The value that will be used to convert the slider value to the text field
 	// double.
 	private double slider_to_text_multiplier;
@@ -40,6 +41,7 @@ public class SliderTextCombination extends JPanel {
 			boolean paint_ticks, int small_interval, int large_interval, double slider_to_text_multiplier) {
 		this.setLayout(new GridBagLayout());
 		this.slider_to_text_multiplier = slider_to_text_multiplier;
+		this.title = title;
 
 		this.slider = new JSlider(min, max, (int) (value * this.slider_to_text_multiplier));
 		this.slider.setPaintTicks(paint_ticks);
@@ -90,10 +92,12 @@ public class SliderTextCombination extends JPanel {
 	}
 
 	protected void fire_listeners() {
-		int size = this.listeners.size();
-		for (int i = 0; i < size; i++)
-			this.listeners.get(i)
-					.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Slider_Text_Combo"));
+		if (this.listeners != null) {
+			int size = this.listeners.size();
+			for (int i = 0; i < size; i++)
+				this.listeners.get(i)
+						.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Slider_Text_Combo"));
+		}
 	}
 
 	public void addActionListener(ActionListener action) {
@@ -105,9 +109,22 @@ public class SliderTextCombination extends JPanel {
 	public double get_value() {
 		return Double.parseDouble(this.text.getText());
 	}
-	
+
 	public void set_value(double value) {
 		this.slider.setValue((int) (value * this.slider_to_text_multiplier));
+	}
+
+	public void set_min(int min) {
+		this.slider.setMinimum((int) (min * slider_to_text_multiplier));
+	}
+
+	public void set_max(int max) {
+		this.slider.setMaximum((int) (max * slider_to_text_multiplier));
+	}
+
+	public void set_draw_border(boolean draw_border) {
+		this.setBorder(draw_border ? BorderFactory.createTitledBorder(this.title)
+				: BorderFactory.createEmptyBorder(0, 0, 0, 0));
 	}
 
 }
