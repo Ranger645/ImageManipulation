@@ -6,28 +6,24 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
+import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import counters.C_Default;
 import counters.Counter;
 import filters.F_Combination;
 import filters.Filter;
@@ -36,7 +32,6 @@ public class ImageController extends JPanel {
 
 	private Viewer image = null;
 	private Window window = null;
-	private Counter counter = null;
 	private JPanel count_control_panel;
 
 	private DefaultListModel<String> model = null;
@@ -46,23 +41,27 @@ public class ImageController extends JPanel {
 	private JPanel filter_control_panel = null;
 	private int last_config_index = 0;
 
+	// The combo box that selects where to get the image to display:
+	private JComboBox<String> image_display_mode = null;
+	private final String[] DEFAULT_DISPLAY_MODES = { "Filtered", "Original" };
+
 	private static final String CONTROL = "Control";
 	private static final String FILTER = "Filter";
 
 	public ImageController(Viewer image) {
 		this.image = image;
 		this.setLayout(new GridBagLayout());
-		
+
 		count_control_panel = new JPanel();
 		this.update_counter();
 
 		JPanel control_panel = new JPanel();
 		control_panel.setLayout(new GridBagLayout());
-		JButton btn_close_image = new JButton("Close Image");
-		btn_close_image.addActionListener(new ActionListener() {
+		image_display_mode = new JComboBox<String>(this.get_display_mode_options());
+		image_display_mode.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				window.close_current_image();
+				image.repaint();
 			}
 		});
 		JButton btn_recenter_image = new JButton("Recenter Image");
@@ -72,59 +71,17 @@ public class ImageController extends JPanel {
 				image.recenter_display();
 			}
 		});
-
-		JPanel image_select_panel = new JPanel();
-		image_select_panel.setLayout(new GridBagLayout());
-		JRadioButton original_image_draw_button = new JRadioButton("Original Image");
-		original_image_draw_button.addActionListener(new ActionListener() {
+		JButton btn_close_image = new JButton("Close Image");
+		btn_close_image.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				image.set_index_to_draw(0);
-				image.set_display_mode(0);
+				window.close_current_image();
 			}
 		});
-		JRadioButton filtered_image_draw_button = new JRadioButton("Filtered Image");
-		filtered_image_draw_button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				image.set_index_to_draw(-1);
-				image.set_display_mode(1);
-			}
-		});
-		JRadioButton small_count_button = new JRadioButton("Small Counts");
-		small_count_button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				image.set_display_mode(2);
-			}
-		});
-		JRadioButton large_count_button = new JRadioButton("Large Counts");
-		large_count_button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				image.set_display_mode(3);
-			}
-		});
-		ButtonGroup group = new ButtonGroup();
-		group.add(original_image_draw_button);
-		group.add(filtered_image_draw_button);
-		group.add(small_count_button);
-		group.add(large_count_button);
-		group.setSelected(filtered_image_draw_button.getModel(), true);
-
-		Utilites.addGridComponent(image_select_panel, original_image_draw_button, 0, 0, 1, 1, 1, 1,
-				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(image_select_panel, filtered_image_draw_button, 0, 1, 1, 1, 1, 1,
-				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(image_select_panel, small_count_button, 0, 2, 1, 1, 1, 1,
-				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(image_select_panel, large_count_button, 0, 3, 1, 1, 1, 1,
-				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
-		image_select_panel.setBorder(BorderFactory.createTitledBorder("Image Draw Control"));
 
 		Utilites.addGridComponent(control_panel, count_control_panel, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
 				GridBagConstraints.HORIZONTAL);
-		Utilites.addGridComponent(control_panel, image_select_panel, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
+		Utilites.addGridComponent(control_panel, image_display_mode, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.SOUTH,
 				GridBagConstraints.HORIZONTAL);
 		Utilites.addGridComponent(control_panel, btn_recenter_image, 0, 2, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
 				GridBagConstraints.HORIZONTAL);
@@ -257,7 +214,33 @@ public class ImageController extends JPanel {
 
 	public void update_counter() {
 		this.count_control_panel.removeAll();
-		this.count_control_panel.add(image.get_counter().create_control_panel());
+		this.count_control_panel.setLayout(new GridBagLayout());
+		Utilites.addGridComponent(this.count_control_panel, image.get_counter().create_control_panel(), 0, 0, 1, 1, 1.0,
+				1.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+
+		// Updating the display mode combo box:
+		if (this.image_display_mode != null)
+			this.image_display_mode.setModel(new DefaultComboBoxModel<String>(this.get_display_mode_options()));
+	}
+
+	private String[] get_display_mode_options() {
+		Set<String> set_options = this.image.get_counter().get_display_mode_keys();
+		String[] options = new String[set_options.size() + 2];
+		options[0] = DEFAULT_DISPLAY_MODES[0];
+		options[1] = DEFAULT_DISPLAY_MODES[1];
+		int count = 2;
+		Iterator<String> iter = set_options.iterator();
+		while (iter.hasNext())
+			options[count++] = iter.next();
+		return options;
+	}
+	
+	public int get_selected_display_mode() {
+		return this.image_display_mode.getSelectedIndex();
+	}
+	
+	public String get_selected_display_mode_key() {
+		return this.image_display_mode.getItemAt(this.get_selected_display_mode());
 	}
 
 }

@@ -4,12 +4,16 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -24,6 +28,14 @@ public abstract class Counter {
 
 	protected SliderTextCombination grey_thresh_component;
 	protected JSpinner blob_size_component;
+	
+	protected Map<String, BufferedImage> display_modes = null;
+	
+	protected Counter(String[] mode_names) {
+		this.display_modes = new HashMap<String, BufferedImage>();
+		for (String s : mode_names)
+			this.display_modes.put(s, null);
+	}
 
 	/**
 	 * Uses the count GUI in combination with the buffered image and this count
@@ -58,6 +70,9 @@ public abstract class Counter {
 	 */
 	protected JPanel create_default_control_panel() {
 		JPanel panel = new JPanel(new GridBagLayout());
+		
+		JScrollPane scrollPane = new JScrollPane(panel);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 		grey_thresh_component = new SliderTextCombination("Threshold", true, 5, 0, 255, 100, true, 5, 10, 1);
 		grey_thresh_component.addActionListener(new ActionListener() {
@@ -106,6 +121,14 @@ public abstract class Counter {
 		Iterator<ActionListener> iter = display_update_listeners.iterator();
 		while (iter.hasNext())
 			iter.next().actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Count_Update"));
+	}
+	
+	public Set<String> get_display_mode_keys() {
+		return this.display_modes.keySet();
+	}
+	
+	public BufferedImage get_display_image(String key) {
+		return this.display_modes.get(key);
 	}
 
 }

@@ -7,14 +7,12 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -22,18 +20,19 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import batch.BackgroundNd2Counter;
 import batch.BatchCountExecution;
+import counters.Counter;
+import counters.CounterManager;
 import filters.F_Combination;
 import filters.Filter;
 import filters.FilterManager;
 import tools.ImageConverter;
-import utilities.FileUtilities;
 
 public class Window extends JFrame {
 
@@ -45,6 +44,7 @@ public class Window extends JFrame {
 	private Window self = null;
 
 	public FilterManager filter_manager = null;
+	public CounterManager counter_manager = null;
 
 	public static final File DOCUMENTS = new File(System.getProperty("user.home") + File.separator + "Documents");
 	public static final File DOWNLOADS = new File(System.getProperty("user.home") + File.separator + "Downloads");
@@ -57,6 +57,7 @@ public class Window extends JFrame {
 		this.setTitle(TITLE);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		filter_manager = new FilterManager();
+		counter_manager = new CounterManager();
 		tabs.setSize(800, 650);
 
 		// Creating the menu bar:
@@ -285,6 +286,28 @@ public class Window extends JFrame {
 				image_viewers.get(tabs.getSelectedIndex()).repaint();
 			}
 		});
+		Map<String, Counter> all_counters = this.counter_manager.getCounters();
+		ButtonGroup counter_group = new ButtonGroup();
+		for (String s : all_counters.keySet()) {
+			JRadioButtonMenuItem current_counter_menu_item = new JRadioButtonMenuItem(s);
+			current_counter_menu_item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					get_selected_viewer().set_counter(counter_manager.get_new_counter(s));
+					repaint();
+				}
+			});
+			counter_group.add(current_counter_menu_item);
+			if (s.equals("Default"))
+				counter_group.setSelected(current_counter_menu_item.getModel(), true);
+			
+			algo_menu.add(current_counter_menu_item);
+		}
+		algo_menu.addSeparator();
+		algo_menu.add(blob_count);
+		algo_menu.add(clear_count);
+		
+		JMenu batch_menu = new JMenu("Batch");
 		JMenuItem batch_count_res = new JMenuItem("Batch Count res/");
 		batch_count_res.addActionListener(new ActionListener() {
 			@Override
@@ -333,18 +356,15 @@ public class Window extends JFrame {
 				t.start();
 			}
 		});
-		algo_menu.add(blob_count);
-		algo_menu.addSeparator();
-		algo_menu.add(clear_count);
-		algo_menu.addSeparator();
-		algo_menu.add(batch_count_res);
-		algo_menu.add(batch_count_gen);
-		algo_menu.add(batch_count_nd2);
+		batch_menu.add(batch_count_res);
+		batch_menu.add(batch_count_gen);
+		batch_menu.add(batch_count_nd2);
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
 		menu.add(image_menu);
 		menu.add(algo_menu);
+		menu.add(batch_menu);
 		this.setJMenuBar(menu);
 
 		gui_filter_managers = new JPanel();

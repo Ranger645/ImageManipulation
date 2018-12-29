@@ -10,6 +10,10 @@ import algos.BlobFinder;
 
 public class C_Default extends Counter {
 
+	public C_Default() {
+		super(new String[] {});
+	}
+
 	@Override
 	public List<Blob> count(BufferedImage image) {
 		return BlobFinder.find_blobs(image, (int) this.grey_thresh_component.get_value(),

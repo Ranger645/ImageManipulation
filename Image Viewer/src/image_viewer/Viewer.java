@@ -35,8 +35,6 @@ public class Viewer extends JPanel {
 
 	private ImageZoom image_transform;
 	private boolean continuous_blob_finding = true;
-	private int display_index = -1;
-	private int display_mode = 1;
 	public int zoom_percentage = 100;
 
 	public List<Blob> last_blobs;
@@ -47,8 +45,7 @@ public class Viewer extends JPanel {
 		super();
 
 		// COUNTER INITIALIZATION:
-		this.counter = new C_MinMult_MaxSizeSplit();
-		JPanel count_control_panel = this.counter.create_control_panel();
+		this.counter = new C_Default();
 		this.counter.add_display_update_listener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -67,10 +64,18 @@ public class Viewer extends JPanel {
 		if (image_steps.size() > 0) {
 			// Constructing the image to draw:
 			BufferedImage to_draw = null;
-			if (display_index < 0 || display_index >= image_steps.size())
+			int display_mode = this.gui_controller.get_selected_display_mode();
+			if (display_mode == 0) // Display the filtered image:
 				to_draw = image_steps.get(image_steps.size() - 1);
-			else
-				to_draw = image_steps.get(display_index);
+			else if (display_mode == 1) // Display the original image:
+				to_draw = image_steps.get(0);
+			else { // Display the image provided by the counting function:
+				to_draw = this.counter.get_display_image(this.gui_controller.get_selected_display_mode_key());
+
+				// If the image that the counter supplies is null, then draw the filtered image.
+				if (to_draw == null)
+					to_draw = image_steps.get(image_steps.size() - 1);
+			}
 
 			// Doing the math on the zoom and offsets:
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
@@ -113,10 +118,6 @@ public class Viewer extends JPanel {
 			return true;
 		}
 		return false;
-	}
-
-	public void set_index_to_draw(int index) {
-		this.display_index = index;
 	}
 
 	public void clear_filters() {
@@ -189,11 +190,6 @@ public class Viewer extends JPanel {
 		this.continuous_blob_finding = finding;
 	}
 
-	public void set_display_mode(int mode) {
-		this.display_mode = mode;
-		this.repaint();
-	}
-
 	public void recenter_display() {
 		this.image_transform.recenter();
 	}
@@ -204,7 +200,14 @@ public class Viewer extends JPanel {
 
 	public void set_counter(Counter c) {
 		this.counter = c;
+		this.counter.add_display_update_listener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				point_out_blobs();
+			}
+		});
 		this.gui_controller.update_counter();
+		this.point_out_blobs();
 	}
 
 }

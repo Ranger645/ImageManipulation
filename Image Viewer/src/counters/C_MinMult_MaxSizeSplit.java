@@ -1,5 +1,9 @@
 package counters;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -18,11 +22,23 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 
 	private SliderTextCombination minimum_percentage_control, minimum_multiplier, maximum_percentage_control;
 
+	public C_MinMult_MaxSizeSplit() {
+		super(new String[] { "Black/White" });
+	}
+
 	@Override
 	public List<Blob> count(BufferedImage image) {
 		// Getting the original blobs that were counted:
 		List<Blob> blobs = BlobFinder.find_blobs(image, (int) this.grey_thresh_component.get_value(),
 				(int) this.blob_size_component.getValue());
+
+		BufferedImage black_white_image = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+		Graphics2D g = black_white_image.createGraphics();
+		g.drawImage(image, 0, 0, null);
+		for (Blob blob : blobs)
+			for (Point point : blob.points)
+				black_white_image.setRGB(point.x, point.y, Color.GRAY.getRGB());
+		this.display_modes.put("Black/White", black_white_image);
 
 		// Computing the number of minimums and maximums:
 		int minimum_number = (int) (blobs.size() * (minimum_percentage_control.get_value() / 100.0));
@@ -34,7 +50,7 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 
 		// Adjusting maximum percentage:
 		BlobListAdjuster.adjust_max_size_split(blobs, minimum_number, maximum__number);
-		
+
 		return blobs;
 	}
 
@@ -53,9 +69,12 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 		maximum_percentage_control.set_value(90);
 		minimum_multiplier = new SliderTextCombination("Minimum Multiplier", true, 5, 0, 500, 3, true, 25, 50, 100);
 
-		Utilites.addGridComponent(panel, minimum_percentage_control, 0, 2, 2, 1, 1.0, 1.0);
-		Utilites.addGridComponent(panel, minimum_multiplier, 0, 3, 2, 1, 1.0, 1.0);
-		Utilites.addGridComponent(panel, maximum_percentage_control, 0, 4, 2, 1, 1.0, 1.0);
+		Utilites.addGridComponent(panel, minimum_percentage_control, 0, 2, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(panel, minimum_multiplier, 0, 3, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(panel, maximum_percentage_control, 0, 4, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
+				GridBagConstraints.HORIZONTAL);
 
 		minimum_percentage_control.addActionListener(new ActionListener() {
 			@Override

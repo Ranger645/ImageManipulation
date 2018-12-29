@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import filters.F_Multiply;
+import filters.F_Threshold;
+import filters.Filter;
 
 public class BlobListAdjuster {
 
@@ -78,6 +80,40 @@ public class BlobListAdjuster {
 
 		// Getting the small blobs from the new small blob image:
 		List<Blob> small_blobs = BlobFinder.find_blobs(small_blob_image, grey_thresh, min_blob_size);
+		for (Blob b : small_blobs)
+			b.setType(-1);
+		blobs.addAll(small_blobs);
+
+		return blobs;
+	}
+	
+	public static List<Blob> adjust_max_threshold(List<Blob> blobs, BufferedImage original_image, int max_number,
+			int grey_thresh, int min_blob_size, int threshold) {
+		// Sorting the blobs and getting the number of small ones:
+		Collections.sort(blobs, new BlobSortBySize());
+
+		// Setting up the blank image to filter:
+		BufferedImage large_blob_image = new BufferedImage(original_image.getWidth(), original_image.getHeight(),
+				original_image.getType());
+		Graphics2D g = large_blob_image.createGraphics();
+		g.setPaint(Color.BLACK);
+		g.fillRect(0, 0, large_blob_image.getWidth(), large_blob_image.getHeight());
+
+		// Adding the blobs we need to filter to the image:
+		for (int i = 0; i < max_number; i++) {
+			blobs.get(0).setType(1);
+			for (Point p : blobs.get(0).points) {
+				large_blob_image.setRGB(p.x, p.y, original_image.getRGB(p.x, p.y));
+			}
+			blobs.remove(0);
+		}
+
+		// Filtering the small blob image:
+		Filter large_thresh_filter = new F_Threshold(threshold);
+		large_blob_image = large_thresh_filter.filter(large_blob_image);
+
+		// Getting the small blobs from the new small blob image:
+		List<Blob> small_blobs = BlobFinder.find_blobs(large_blob_image, grey_thresh, min_blob_size);
 		for (Blob b : small_blobs)
 			b.setType(-1);
 		blobs.addAll(small_blobs);
