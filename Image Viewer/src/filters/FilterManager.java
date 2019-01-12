@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import counters.Counter;
+
 public class FilterManager {
 
 	private Map<String, Filter> filters = new HashMap<String, Filter>();
@@ -45,7 +47,7 @@ public class FilterManager {
 		for (String line : filter_lines) {
 			String filter_name = line.substring(0, line.indexOf(","));
 			Filter f = this.filters.get(filter_name).clone();
-			
+
 			String filter_params = "";
 			if (line.indexOf(",") != line.length() - 1)
 				filter_params += line.substring(line.indexOf(",") + 1);
@@ -65,6 +67,14 @@ public class FilterManager {
 
 	public void add_filter(String name, Filter f) {
 		filters.put(name, f);
+	}
+
+	public String get_filter_key(Filter f) {
+		for (String key : this.filters.keySet())
+			if (f.getClass().getName().equals(this.filters.get(key).getClass().getName()))
+				return key;
+		return null;
+
 	}
 
 }

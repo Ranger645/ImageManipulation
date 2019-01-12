@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
 
+import filters.F_Color_Average_Square;
 import filters.F_Multiply;
 import filters.F_Threshold;
 import filters.Filter;
@@ -39,6 +40,40 @@ public class BlobListAdjuster {
 	}
 
 	////////////////////// HARD ADJUSTMENTS //////////////////////
+
+	public static List<Blob> adjust_max_avg_sqr(List<Blob> blobs, BufferedImage original_image, int max_number,
+			int max_avg_sqr, int grey_thresh, int min_blob_size) {
+		Collections.sort(blobs, new BlobSortBySize());
+
+		// Setting up the blank image to filter:
+		BufferedImage large_blob_image = new BufferedImage(original_image.getWidth(), original_image.getHeight(),
+				original_image.getType());
+		Graphics2D g = large_blob_image.createGraphics();
+		g.setPaint(Color.BLACK);
+		g.fillRect(0, 0, large_blob_image.getWidth(), large_blob_image.getHeight());
+
+		// Adding the blobs we need to filter to the image:
+		for (int i = 0; i < max_number; i++) {
+			blobs.get(blobs.size() - 1).setType(-1);
+			for (Point p : blobs.get(blobs.size() - 1).points) {
+				large_blob_image.setRGB(p.x, p.y, original_image.getRGB(p.x, p.y));
+			}
+			blobs.remove(blobs.size() - 1);
+		}
+
+		// Filtering the small blob image:
+		F_Color_Average_Square large_avg_filter = new F_Color_Average_Square();
+		large_avg_filter.set_radius(max_avg_sqr);
+		large_blob_image = large_avg_filter.filter(large_blob_image);
+
+		// Getting the small blobs from the new small blob image:
+		List<Blob> large_blobs = BlobFinder.find_blobs(large_blob_image, grey_thresh, min_blob_size);
+		for (Blob b : large_blobs)
+			b.setType(1);
+		blobs.addAll(large_blobs);
+
+		return blobs;
+	}
 
 	/**
 	 * Multiplies the pixels in the mid range of blobs and then re-finds the blobs
@@ -86,7 +121,7 @@ public class BlobListAdjuster {
 
 		return blobs;
 	}
-	
+
 	public static List<Blob> adjust_max_threshold(List<Blob> blobs, BufferedImage original_image, int max_number,
 			int grey_thresh, int min_blob_size, int threshold) {
 		// Sorting the blobs and getting the number of small ones:

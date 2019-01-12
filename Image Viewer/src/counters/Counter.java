@@ -1,6 +1,8 @@
 package counters;
 
+import java.awt.Color;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -28,9 +30,9 @@ public abstract class Counter {
 
 	protected SliderTextCombination grey_thresh_component;
 	protected JSpinner blob_size_component;
-	
+
 	protected Map<String, BufferedImage> display_modes = null;
-	
+
 	protected Counter(String[] mode_names) {
 		this.display_modes = new HashMap<String, BufferedImage>();
 		for (String s : mode_names)
@@ -56,6 +58,10 @@ public abstract class Counter {
 	 */
 	public abstract JPanel create_control_panel();
 
+	public abstract String[] encode();
+
+	public abstract void decode(String[] to_decode);
+
 	/**
 	 * Returns a clone of this counter
 	 */
@@ -70,7 +76,7 @@ public abstract class Counter {
 	 */
 	protected JPanel create_default_control_panel() {
 		JPanel panel = new JPanel(new GridBagLayout());
-		
+
 		JScrollPane scrollPane = new JScrollPane(panel);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
@@ -122,13 +128,43 @@ public abstract class Counter {
 		while (iter.hasNext())
 			iter.next().actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Count_Update"));
 	}
-	
+
 	public Set<String> get_display_mode_keys() {
 		return this.display_modes.keySet();
 	}
-	
+
 	public BufferedImage get_display_image(String key) {
 		return this.display_modes.get(key);
+	}
+
+	protected void add_blob_cover_display_mode(BufferedImage original, String key, List<Blob> blobs, int start, int end,
+			Color main_color, Color edge_color) {
+		if (start > end)
+			return;
+
+		int rgb = main_color.getRGB();
+		int rgb_secondary = edge_color.getRGB();
+
+		BufferedImage display = new BufferedImage(original.getWidth(), original.getHeight(), original.getType());
+		display.createGraphics().drawImage(original, 0, 0, null);
+		for (int i = start; i < end; i++) {
+			for (Point p : blobs.get(i).points)
+				display.setRGB(p.x, p.y, rgb);
+			for (Point p : blobs.get(i).edge_points)
+				display.setRGB(p.x, p.y, rgb_secondary);
+		}
+
+		this.display_modes.put(key, display);
+	}
+
+	protected void add_blob_cover_display_mode(BufferedImage original, String key, List<Blob> blobs, int start, int end,
+			Color main_color) {
+		this.add_blob_cover_display_mode(original, key, blobs, start, end, main_color, Color.RED);
+	}
+
+	protected void add_blob_cover_display_mode(BufferedImage original, String key, List<Blob> blobs, int start,
+			int end) {
+		this.add_blob_cover_display_mode(original, key, blobs, start, end, Color.GRAY, Color.RED);
 	}
 
 }

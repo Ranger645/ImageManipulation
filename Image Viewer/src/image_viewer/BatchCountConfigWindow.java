@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import batch.BackgroundNd2Counter;
-import utilities.FileUtilities;
+import files.FileUtilities;
 
 public class BatchCountConfigWindow extends JFrame implements ActionListener {
 

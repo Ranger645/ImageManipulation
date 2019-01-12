@@ -1,6 +1,5 @@
 package image_viewer;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -15,9 +14,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import algos.Blob;
-import algos.BlobFinder;
 import counters.C_Default;
-import counters.C_MinMult_MaxSizeSplit;
 import counters.Counter;
 import filters.Filter;
 
@@ -28,7 +25,6 @@ public class Viewer extends JPanel {
 	// The list of images that are the different steps in the filter process.
 	private List<BufferedImage> image_steps = new ArrayList<BufferedImage>();
 	// The images that store the counting steps:
-	private BufferedImage small_blob_image = null, large_blob_image = null, combined_blob_image = null;
 
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();

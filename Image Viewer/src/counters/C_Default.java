@@ -30,4 +30,13 @@ public class C_Default extends Counter {
 		return new C_Default();
 	}
 
+	@Override
+	public String[] encode() {
+		return null;
+	}
+
+	@Override
+	public void decode(String[] to_decode) {
+	}
+
 }

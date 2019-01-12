@@ -103,4 +103,13 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 		return new C_MinMult_MaxSizeSplit();
 	}
 
+	@Override
+	public String[] encode() {
+		return null;
+	}
+
+	@Override
+	public void decode(String[] to_decode) {
+	}
+
 }

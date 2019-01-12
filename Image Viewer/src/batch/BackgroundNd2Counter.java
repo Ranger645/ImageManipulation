@@ -7,11 +7,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import files.FileUtilities;
 import filters.F_Combination;
 import image_viewer.WorkingBar;
 import tools.ImageConverter;
 import utilities.CountConfiguration;
-import utilities.FileUtilities;
 
 /**
  * Counts the number of blobs given an nd2 file or folder containing nd2 files.
@@ -87,7 +87,7 @@ public class BackgroundNd2Counter {
 				BackgroundImage image = new BackgroundImage(layer_image_files[i]);
 				image.filter(new F_Combination(count_configs[i].get_filters()));
 				counts[file_index][i] = algos.BlobFinder.find_blob_centers(image.getImage(),
-						count_configs[i].getGrey_thresh(), count_configs[i].getBlob_size(), 2).size();
+						count_configs[i].getGrey_thresh(), count_configs[i].getBlob_size()).size();
 				System.out.printf("\tCounts[%d] = %d\n", i + 1, counts[file_index][i]);
 			}
 		}

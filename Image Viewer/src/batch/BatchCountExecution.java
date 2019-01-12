@@ -60,10 +60,10 @@ public class BatchCountExecution {
 			BackgroundImage image = new BackgroundImage(file);
 			image.filter(operation);
 			List<Point> count_points = algos.BlobFinder.find_blob_centers(image.getImage(), grey_thresh,
-					blob_pixel_size, 2);
+					blob_pixel_size);
 			counts.put(file.getName(), count_points.size());
 		}
-		
+
 		PrintWriter printer = null;
 		try {
 			printer = new PrintWriter(this.output_file);
@@ -71,7 +71,7 @@ public class BatchCountExecution {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		for (String key : counts.keySet()) {
 			printer.println(key + "," + counts.get(key).toString());
 		}

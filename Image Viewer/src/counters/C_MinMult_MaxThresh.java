@@ -98,4 +98,13 @@ public class C_MinMult_MaxThresh extends Counter {
 		return new C_MinMult_MaxThresh();
 	}
 
+	@Override
+	public String[] encode() {
+		return null;
+	}
+
+	@Override
+	public void decode(String[] to_decode) {
+	}
+
 }
