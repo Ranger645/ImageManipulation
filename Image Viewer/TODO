@@ -4,24 +4,16 @@ Purpose: The original purpose of this project was to develop a
 	It allows the user to create an image filter line and specify
 	blob count parameters for automated blob counting in images.
 
-TODO for the Image Viewer
-
-1. CLEAN UP CODE, IT IS A MESS
-	a. Note: step one should help with this greatly.
-	b. The biggest mess is the file writing and reading code. It is really
-		bad... it is just not very flexible.
-
-MERGE DEV -> MASTER
-
-2. You need to change the entire purpose of this program. It needs to go 
+1. You need to change the entire purpose of this program. It needs to go 
 	from counting everything automatically to be user assisted. The user
 	assist comes from left and right clicking on the counts to add and delete
-	them respectively.
+	them respectively. When you hover over a blob, it should highlight the 
+	edges of the blob.
 	a. Implement basic add/delete blob function.
 	b. Add secondary process to batch counting that allows for user 
 		intervention.
 	c. Make sure everything is added properly to the output CSV file.
-3. Complete the Image Menu functionality.
+2. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original
 	b. Join: Creates a new image with all the selected images piled
