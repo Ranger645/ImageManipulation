@@ -1,13 +1,19 @@
 package algos;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Blob {
 
-	List<Point> points = null;
-	List<Point> edge_points = null;
+	public List<Point> points = null;
+	public List<Point> edge_points = null;
+	private int count = 1;
+
+	// The variable that will be used for coloring. Smaller points will be negative
+	// and bigger points will be positive.
+	private int type = 0;
 
 	public Blob() {
 		points = new ArrayList<Point>();
@@ -43,19 +49,25 @@ public class Blob {
 		Point average = this.compute_average_point();
 		return String.format("[Blob={Size=%d;Average=(%f,%f)}]", this.points.size(), average.x, average.y);
 	}
-
-	public List<Blob> split(int pieces, int thresh, int size) {
-		// This works by returning subset blobs of this blob that are derived from the
-		// threshold and minimum pixel counts.
-		List<Blob> blob_list = new ArrayList<Blob>();
-		
-		
-		
-		return blob_list;
+	
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	public int getType() {
+		return this.type;
+	}
+	
+	public void set_count(int count) {
+		this.count = count;
+	}
+	
+	public int get_count() {
+		return this.count;
 	}
 
-	public static double point_triangle_area(Point a, Point b, Point c) {
-		return (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2.0;
+	public Color get_color() {
+		return type == 0 ? Color.CYAN : (type < 0 ? Color.YELLOW : Color.RED);
 	}
 
 }

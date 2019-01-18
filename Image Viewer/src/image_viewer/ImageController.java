@@ -6,13 +6,15 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -22,11 +24,10 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import counters.Counter;
 import filters.F_Combination;
 import filters.Filter;
 
@@ -34,6 +35,7 @@ public class ImageController extends JPanel {
 
 	private Viewer image = null;
 	private Window window = null;
+	private JPanel count_control_panel;
 
 	private DefaultListModel<String> model = null;
 	private JList<String> filter_list = null;
@@ -41,11 +43,10 @@ public class ImageController extends JPanel {
 	private JTabbedPane control_tabs = new JTabbedPane();
 	private JPanel filter_control_panel = null;
 	private int last_config_index = 0;
-	
-	private JSpinner blob_size_control;
-	private JTextField blob_grey_thresh_text;
-	private JSlider blob_grey_thresh_slider;
-	private JCheckBox continuous_count_toggle;
+
+	// The combo box that selects where to get the image to display:
+	private JComboBox<String> image_display_mode = null;
+	private final String[] DEFAULT_DISPLAY_MODES = { "Filtered", "Original" };
 
 	private static final String CONTROL = "Control";
 	private static final String FILTER = "Filter";
@@ -54,7 +55,25 @@ public class ImageController extends JPanel {
 		this.image = image;
 		this.setLayout(new GridBagLayout());
 
-		Box control_box = Box.createVerticalBox();
+		count_control_panel = new JPanel();
+		this.update_counter();
+
+		JPanel control_panel = new JPanel();
+		control_panel.setLayout(new GridBagLayout());
+		image_display_mode = new JComboBox<String>(this.get_display_mode_options());
+		image_display_mode.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.repaint();
+			}
+		});
+		JButton btn_recenter_image = new JButton("Recenter Image");
+		btn_recenter_image.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				image.recenter_display();
+			}
+		});
 		JButton btn_close_image = new JButton("Close Image");
 		btn_close_image.addActionListener(new ActionListener() {
 			@Override
@@ -62,55 +81,15 @@ public class ImageController extends JPanel {
 				window.close_current_image();
 			}
 		});
-		blob_grey_thresh_slider = new JSlider(5, 255, 100);
-		blob_grey_thresh_slider.setPaintTicks(true);
-		blob_grey_thresh_slider.setMajorTickSpacing(50);
-		blob_grey_thresh_slider.setMinorTickSpacing(10);
-		blob_grey_thresh_slider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				blob_grey_thresh_text.setText("" + blob_grey_thresh_slider.getValue());
-				image.point_out_blobs();
-			}
-		});
-		blob_grey_thresh_text = new JTextField("100", 5);
-		blob_grey_thresh_text.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				blob_grey_thresh_slider.setValue(Integer.parseInt(blob_grey_thresh_text.getText()));
-				image.point_out_blobs();
-			}
-		});
-		blob_size_control = new JSpinner();
-		blob_size_control.setValue(15);
-		blob_size_control.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				image.point_out_blobs();
-			}
-		});
-		continuous_count_toggle = new JCheckBox("Continuous Count", true);
-		continuous_count_toggle.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				image.set_continuous_blob_finding(continuous_count_toggle.isSelected());
-				if (! continuous_count_toggle.isSelected())
-					image.points.clear_points();
-				else
-					image.point_out_blobs();
-				image.repaint();
-			}
-		});
-		Box count_control_box = Box.createVerticalBox();
-		count_control_box.add(blob_grey_thresh_slider);
-		count_control_box.add(blob_grey_thresh_text);
-		count_control_box.add(blob_size_control);
-		count_control_box.add(continuous_count_toggle);
-		count_control_box.setBorder(BorderFactory.createTitledBorder("Counting Settings"));
-		control_box.add(count_control_box);
-		control_box.add(btn_close_image);
-		JPanel control_panel = new JPanel();
-		control_panel.add(control_box);
+
+		Utilites.addGridComponent(control_panel, count_control_panel, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.NORTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, image_display_mode, 0, 1, 1, 1, 1.0, 1.0, GridBagConstraints.SOUTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, btn_recenter_image, 0, 2, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+				GridBagConstraints.HORIZONTAL);
+		Utilites.addGridComponent(control_panel, btn_close_image, 0, 3, 1, 1, 1.0, 0.1, GridBagConstraints.SOUTH,
+				GridBagConstraints.HORIZONTAL);
 
 		JPanel filter_panel = new JPanel();
 		filter_panel.setLayout(new GridBagLayout());
@@ -190,17 +169,8 @@ public class ImageController extends JPanel {
 				GridBagConstraints.BOTH);
 
 		control_tabs.addTab(FILTER, filter_panel);
-		control_tabs.addTab(CONTROL, control_panel);
 		Utilites.addGridComponent(this, control_tabs, 0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
 				GridBagConstraints.BOTH);
-	}
-	
-	public int get_grey_thresh() {
-		return this.blob_grey_thresh_slider.getValue();
-	}
-	
-	public int get_blob_size() {
-		return (int) this.blob_size_control.getValue();
 	}
 
 	public void change_filter_config_panel(int index) {
@@ -214,6 +184,10 @@ public class ImageController extends JPanel {
 
 	public void init_window() {
 		this.window = (Window) image.getParent().getParent().getParent().getParent().getParent().getParent();
+	}
+
+	public Window get_window() {
+		return this.window;
 	}
 
 	public void update_filter_list() {
@@ -238,6 +212,37 @@ public class ImageController extends JPanel {
 			if (this.window.filter_manager.get_filter(name).getClass().getName() == f.getClass().getName())
 				return name;
 		return "NULL";
+	}
+
+	public void update_counter() {
+		this.count_control_panel.removeAll();
+		this.count_control_panel.setLayout(new GridBagLayout());
+		Utilites.addGridComponent(this.count_control_panel, image.get_counter().get_control_panel(), 0, 0, 1, 1, 1.0,
+				1.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
+
+		// Updating the display mode combo box:
+		if (this.image_display_mode != null)
+			this.image_display_mode.setModel(new DefaultComboBoxModel<String>(this.get_display_mode_options()));
+	}
+
+	private String[] get_display_mode_options() {
+		Set<String> set_options = this.image.get_counter().get_display_mode_keys();
+		String[] options = new String[set_options.size() + 2];
+		options[0] = DEFAULT_DISPLAY_MODES[0];
+		options[1] = DEFAULT_DISPLAY_MODES[1];
+		int count = 2;
+		Iterator<String> iter = set_options.iterator();
+		while (iter.hasNext())
+			options[count++] = iter.next();
+		return options;
+	}
+	
+	public int get_selected_display_mode() {
+		return this.image_display_mode.getSelectedIndex();
+	}
+	
+	public String get_selected_display_mode_key() {
+		return this.image_display_mode.getItemAt(this.get_selected_display_mode());
 	}
 
 }

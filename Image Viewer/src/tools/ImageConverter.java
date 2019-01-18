@@ -22,22 +22,28 @@ public class ImageConverter {
 	 * they are. For example, 1.jpg, 2.jpg, and 3.jpg will be added to temp/ for an
 	 * nd2 file with three layers.
 	 * 
-	 * @param source        - the file to start with
+	 * @param source - the file to start with
 	 */
 	public static int nd2_split(File source) {
+		WorkingBar.set_text("Opening ND2 File: " + source.getAbsolutePath());
 		WorkingBar.start_working();
 		File root = new File("tools/imagej/scripts/nd2_to_jpg_split.ijm");
-		
+
+		// Deleting all files in the source:
+		File temp_folder = new File("temp");
+		for (File file : temp_folder.listFiles())
+			if (!file.isDirectory())
+				file.delete();
+
 		String[] command = new String[3];
 		command[0] = "tools/imagej/scripts/run_script.sh";
-		
+
 		String[] path_parts = root.getAbsolutePath().split(" ");
 		String reconstructed_path = "";
 		for (int i = 0; i < path_parts.length - 1; i++)
 			reconstructed_path += path_parts[i] + " ";
 		reconstructed_path += path_parts[path_parts.length - 1];
 		command[1] = new String(reconstructed_path);
-		
 		path_parts = source.getAbsolutePath().split(" ");
 		reconstructed_path = "";
 		for (int i = 0; i < path_parts.length - 1; i++)
@@ -47,7 +53,7 @@ public class ImageConverter {
 
 		Runtime run = Runtime.getRuntime();
 		try {
-			System.out.println("Running Command: " + "".join(" ", command));
+			System.out.println("Running Command: " + String.join(" ", command));
 			Process proc = run.exec(command);
 
 			BufferedReader stdoutput = new BufferedReader(new InputStreamReader(proc.getInputStream()));

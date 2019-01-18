@@ -2,6 +2,8 @@ package image_viewer;
 
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,55 +13,88 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-import algos.BlobFinder;
+import algos.Blob;
+import counters.C_Default;
+import counters.Counter;
 import filters.Filter;
 
 public class Viewer extends JPanel {
 
+	private Counter counter;
+
 	// The list of images that are the different steps in the filter process.
 	private List<BufferedImage> image_steps = new ArrayList<BufferedImage>();
+	// The images that store the counting steps:
 
 	// The list of filters that get applied to the original image.
 	private List<Filter> filters = new ArrayList<Filter>();
 
+	private ImageZoom image_transform;
 	private boolean continuous_blob_finding = true;
 	public int zoom_percentage = 100;
 
-	public PointManager points = null;
+	public List<Blob> last_blobs;
 	public ImageController gui_controller = null;
 	public String KEY = "";
 
 	public Viewer(String key) {
 		super();
-		points = new PointManager();
+
+		// COUNTER INITIALIZATION:
+		this.counter = new C_Default();
+		this.counter.add_display_update_listener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				point_out_blobs();
+			}
+		});
+
 		gui_controller = new ImageController(this);
-		this.addMouseWheelListener(new ImageZoom(this));
+		this.addMouseWheelListener(image_transform = new ImageZoom(this));
+		this.addMouseListener(image_transform);
+		this.addMouseMotionListener(image_transform);
 		this.KEY = key;
 	}
 
 	public void paint(Graphics g) {
 		if (image_steps.size() > 0) {
-			BufferedImage to_draw = image_steps.get(image_steps.size() - 1);
-			
+			// Constructing the image to draw:
+			BufferedImage to_draw = null;
+			int display_mode = this.gui_controller.get_selected_display_mode();
+			if (display_mode == 0) // Display the filtered image:
+				to_draw = image_steps.get(image_steps.size() - 1);
+			else if (display_mode == 1) // Display the original image:
+				to_draw = image_steps.get(0);
+			else { // Display the image provided by the counting function:
+				to_draw = this.counter.get_display_image(this.gui_controller.get_selected_display_mode_key());
+
+				// If the image that the counter supplies is null, then draw the filtered image.
+				if (to_draw == null)
+					to_draw = image_steps.get(image_steps.size() - 1);
+			}
+
+			// Doing the math on the zoom and offsets:
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
 			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
-			
-			int x = this.getWidth() / 2 - width / 2;
-			int y = this.getHeight() / 2 - height / 2;
+			Point offset_point = image_transform.get_image_position();
+			int x = this.getWidth() / 2 - width / 2 + offset_point.x;
+			int y = this.getHeight() / 2 - height / 2 + offset_point.y;
+
+			// Drawing the image to draw on the graphics:
 			g.drawImage(to_draw, x, y, width, height, null);
-			points.paint_points(g, x, y, zoom_percentage);
+			int blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
+
+			// Updating the text display with the count:
+			WorkingBar.set_text(String.format("Counted %d blobs.\n", blob_count));
 		}
 	}
 
+	/**
+	 * Uses the current counter to count the blobs in the current image. Also
+	 * repaints this component.
+	 */
 	public void point_out_blobs() {
-		points.clear_points();
-		List<Point> blobs = BlobFinder.find_blob_centers(image_steps.get(image_steps.size() - 1),
-				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size(), 10);
-		System.out.printf("Counted %d blobs with a threshhold of %d and a size of %d.\n", blobs.size(),
-				this.gui_controller.get_grey_thresh(), this.gui_controller.get_blob_size());
-		for (Point blob : blobs) {
-			points.addPoint(blob);
-		}
+		last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
 		this.repaint();
 	}
 
@@ -137,8 +172,8 @@ public class Viewer extends JPanel {
 	public void close() {
 		filters.clear();
 		image_steps.clear();
-		points.clear_points();
-		points = null;
+		last_blobs.clear();
+		last_blobs = null;
 		filters = null;
 		image_steps = null;
 	}
@@ -149,6 +184,29 @@ public class Viewer extends JPanel {
 	
 	public void set_continuous_blob_finding(boolean finding) {
 		this.continuous_blob_finding = finding;
+	}
+
+	public void set_continuous_blob_finding(boolean finding) {
+		this.continuous_blob_finding = finding;
+	}
+
+	public void recenter_display() {
+		this.image_transform.recenter();
+	}
+
+	public Counter get_counter() {
+		return this.counter;
+	}
+
+	public void set_counter(Counter c) {
+		this.counter = c;
+		this.counter.add_display_update_listener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				point_out_blobs();
+			}
+		});
+		this.gui_controller.update_counter();
 	}
 
 }

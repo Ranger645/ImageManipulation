@@ -27,6 +27,14 @@ public abstract class Filter {
 		return this.filter_config_panel;
 	}
 	
+	public String get_params() {
+		return "";
+	}
+	
+	public void set_params(String params) {
+		
+	}
+	
 	protected BufferedImage get_blank_image(BufferedImage b) {
 		return new BufferedImage(b.getWidth(), b.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 	}

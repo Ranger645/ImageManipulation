@@ -21,6 +21,7 @@ public class F_Color_Average_Square extends Filter {
 	 */
 
 	private int RADIUS;
+	private JSpinner control;
 
 	public F_Color_Average_Square() {
 		super();
@@ -107,7 +108,7 @@ public class F_Color_Average_Square extends Filter {
 	protected JPanel build_filter_edit_panel() {
 		JPanel panel = super.build_filter_edit_panel();
 		panel.setLayout(new GridBagLayout());
-		JSpinner control = new JSpinner();
+		control = new JSpinner();
 		control.setValue(1);
 		control.addChangeListener(new ChangeListener() {
 			@Override
@@ -124,6 +125,24 @@ public class F_Color_Average_Square extends Filter {
 	@Override
 	public Filter clone() {
 		return new F_Color_Average_Square();
+	}
+
+	@Override
+	public String get_params() {
+		String params = super.get_params();
+		return params + this.RADIUS;
+	}
+
+	@Override
+	public void set_params(String params) {
+		super.set_params(params);
+		String[] param_array = params.split(",");
+		this.RADIUS = Integer.parseInt(param_array[0]);
+		this.control.setValue(this.RADIUS);
+	}
+
+	public void set_radius(int radius) {
+		this.RADIUS = radius;
 	}
 
 }

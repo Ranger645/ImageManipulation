@@ -16,10 +16,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import image_viewer.Utilites;
+import utilities.SliderTextCombination;
 
 public class F_Multiply extends Filter {
 
 	private double red, green, blue;
+	private SliderTextCombination s_red, s_green, s_blue;
 
 	public F_Multiply() {
 		super();
@@ -35,11 +37,29 @@ public class F_Multiply extends Filter {
 				int green = this.get_green(in, i, n);
 				int blue = this.get_blue(in, i, n);
 
-				buffer.setRGB(i, n,
-						new Color((int) Math.min((this.red * red), 255), (int) Math.min((this.green * green), 255), (int) Math.min((this.blue * blue), 255)).getRGB());
+				buffer.setRGB(i, n, new Color((int) Math.min((this.red * red), 255),
+						(int) Math.min((this.green * green), 255), (int) Math.min((this.blue * blue), 255)).getRGB());
 			}
 		}
 		return buffer;
+	}
+
+	@Override
+	public String get_params() {
+		String params = super.get_params();
+		return params + this.red + "," + this.green + "," + this.blue;
+	}
+
+	@Override
+	public void set_params(String params) {
+		super.set_params(params);
+		String[] param_array = params.split(",");
+		this.red = Double.parseDouble(param_array[0]);
+		this.s_red.set_value(red);
+		this.green = Double.parseDouble(param_array[1]);
+		this.s_green.set_value(green);
+		this.blue = Double.parseDouble(param_array[2]);
+		this.s_blue.set_value(blue);
 	}
 
 	@Override
@@ -47,86 +67,31 @@ public class F_Multiply extends Filter {
 		JPanel panel = super.build_filter_edit_panel();
 		panel.setLayout(new GridBagLayout());
 
-		Box red_box = Box.createVerticalBox();
-		JSlider red_slider = new JSlider(0, 200, 100);
-		JTextField red_text = new JTextField("1.0", 5);
-		red_text.setHorizontalAlignment(JTextField.CENTER);
-		red_text.addActionListener(new ActionListener() {
+		s_red = new SliderTextCombination("Red", true, 5, 0, 200, 1, true, 5, 10, 100.0);
+		s_red.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				red = Integer.parseInt(red_text.getText());
-				red_slider.setValue((int) (red * 100));
+				red = s_red.get_value();
 			}
 		});
-		red_slider.setMajorTickSpacing(10);
-		red_slider.setMinorTickSpacing(5);
-		red_slider.setPaintTicks(true);
-		red_slider.addChangeListener(new ChangeListener() {
+		s_green = new SliderTextCombination("Green", true, 5, 0, 200, 1, true, 5, 10, 100.0);
+		s_green.addActionListener(new ActionListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {
-				red = red_slider.getValue() / 100.0;
-				red_text.setText("" + red);
+			public void actionPerformed(ActionEvent e) {
+				green = s_green.get_value();
 			}
 		});
-		red_box.add(red_slider);
-		red_box.add(red_text);
-		red_box.setBorder(BorderFactory.createTitledBorder("Red Multiplier"));
-		Utilites.addGridComponent(panel, red_box, 0, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
-				GridBagConstraints.VERTICAL);
+		s_blue = new SliderTextCombination("Blue", true, 5, 0, 200, 1, true, 5, 10, 100.0);
+		s_blue.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				blue = s_blue.get_value();
+			}
+		});
 		
-		Box green_box = Box.createVerticalBox();
-		JSlider green_slider = new JSlider(0, 200, 100);
-		JTextField green_text = new JTextField("1.0", 5);
-		green_text.setHorizontalAlignment(JTextField.CENTER);
-		green_text.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				green = Integer.parseInt(green_text.getText());
-				green_slider.setValue((int) (green * 100));
-			}
-		});
-		green_slider.setMajorTickSpacing(10);
-		green_slider.setMinorTickSpacing(5);
-		green_slider.setPaintTicks(true);
-		green_slider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				green = green_slider.getValue() / 100.0;
-				green_text.setText("" + green);
-			}
-		});
-		green_box.add(green_slider);
-		green_box.add(green_text);
-		green_box.setBorder(BorderFactory.createTitledBorder("Green Multiplier"));
-		Utilites.addGridComponent(panel, green_box, 0, 1, 1, 1, 0, 0, GridBagConstraints.CENTER,
-				GridBagConstraints.VERTICAL);
-		
-		Box blue_box = Box.createVerticalBox();
-		JSlider blue_slider = new JSlider(0, 200, 100);
-		JTextField blue_text = new JTextField("1.0", 5);
-		blue_text.setHorizontalAlignment(JTextField.CENTER);
-		blue_text.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				blue = Integer.parseInt(blue_text.getText());
-				blue_slider.setValue((int) (blue * 100));
-			}
-		});
-		blue_slider.setMajorTickSpacing(10);
-		blue_slider.setMinorTickSpacing(5);
-		blue_slider.setPaintTicks(true);
-		blue_slider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				blue = blue_slider.getValue() / 100.0;
-				blue_text.setText("" + blue);
-			}
-		});
-		blue_box.add(blue_slider);
-		blue_box.add(blue_text);
-		blue_box.setBorder(BorderFactory.createTitledBorder("Blue Multiplier"));
-		Utilites.addGridComponent(panel, blue_box, 0, 2, 1, 1, 0, 0, GridBagConstraints.CENTER,
-				GridBagConstraints.VERTICAL);
+		Utilites.addGridComponent(panel, s_red, 0, 0, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(panel, s_green, 0, 1, 1, 1, 1.0, 1.0);
+		Utilites.addGridComponent(panel, s_blue, 0, 2, 1, 1, 1.0, 1.0);
 
 		return panel;
 	}
@@ -134,6 +99,15 @@ public class F_Multiply extends Filter {
 	@Override
 	public Filter clone() {
 		return new F_Multiply();
+	}
+	
+	public void set_values(double red, double green, double blue) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+		this.s_red.set_value(red);
+		this.s_green.set_value(green);
+		this.s_blue.set_value(blue);
 	}
 
 }
