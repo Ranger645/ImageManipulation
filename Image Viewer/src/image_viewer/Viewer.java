@@ -186,9 +186,6 @@ public class Viewer extends JPanel {
 		this.continuous_blob_finding = finding;
 	}
 
-	public void set_continuous_blob_finding(boolean finding) {
-		this.continuous_blob_finding = finding;
-	}
 
 	public void recenter_display() {
 		this.image_transform.recenter();

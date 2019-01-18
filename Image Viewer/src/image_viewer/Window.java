@@ -232,8 +232,6 @@ public class Window extends JFrame {
 		algo_menu.add(blob_count);
 		algo_menu.add(clear_count);
 		algo_menu.addSeparator();
-		algo_menu.add(batch_count_res);
-		algo_menu.add(batch_count_gen);
 
 		JMenu batch_menu = new JMenu("Batch");
 		
