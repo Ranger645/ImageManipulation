@@ -44,7 +44,6 @@ public class ImageConverter {
 			reconstructed_path += path_parts[i] + " ";
 		reconstructed_path += path_parts[path_parts.length - 1];
 		command[1] = new String(reconstructed_path);
-
 		path_parts = source.getAbsolutePath().split(" ");
 		reconstructed_path = "";
 		for (int i = 0; i < path_parts.length - 1; i++)

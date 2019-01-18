@@ -59,7 +59,6 @@ public class WorkingBar extends JComponent implements Runnable {
 			running_thread.start();
 		}
 	}
-
 	public static void stop_working() {
 		if (running) {
 			running = false;

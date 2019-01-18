@@ -181,6 +181,10 @@ public class Viewer extends JPanel {
 	public List<Filter> get_filters() {
 		return this.filters;
 	}
+	
+	public void set_continuous_blob_finding(boolean finding) {
+		this.continuous_blob_finding = finding;
+	}
 
 	public void set_continuous_blob_finding(boolean finding) {
 		this.continuous_blob_finding = finding;
