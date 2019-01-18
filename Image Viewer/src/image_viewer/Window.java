@@ -97,14 +97,21 @@ public class Window extends JFrame {
 		save_imf_file.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				File to_save = FileUtilities.showFileSaveDialog(Window.DOCUMENTS, "default", "imf", self);
+				int result = JOptionPane.showConfirmDialog(self,
+						"Would you like to lock in these image names? This will only allow your new .imf file to mapped saved configurations to images of the same name.",
+						"Lock Names", JOptionPane.YES_NO_CANCEL_OPTION);
+				if (result == JOptionPane.CANCEL_OPTION)
+					return;
+				
 				IMFFile file;
 				try {
-					file = new IMFFile(self, false);
+					file = new IMFFile(self, result == JOptionPane.YES_OPTION);
 				} catch (ParserConfigurationException e1) {
 					e1.printStackTrace();
 					return;
 				}
-				File to_save = FileUtilities.showFileSaveDialog(Window.DOCUMENTS, "default", "imf", self);
+
 				if (to_save != null) {
 					int status = file.save_file(to_save.getAbsolutePath(), false);
 
@@ -134,7 +141,7 @@ public class Window extends JFrame {
 				File open_file = FileUtilities.showFileOpenDialog(Window.DOCUMENTS, "imf", self);
 				if (open_file == null)
 					return;
-				
+
 				// Resolving file to open because it is not null:
 				IMFFile encoded_file;
 				try {
