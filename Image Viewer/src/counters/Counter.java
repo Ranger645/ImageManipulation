@@ -30,6 +30,7 @@ public abstract class Counter {
 
 	protected SliderTextCombination grey_thresh_component;
 	protected JSpinner blob_size_component;
+	protected JPanel counter_control_panel = null;
 
 	protected Map<String, BufferedImage> display_modes = null;
 
@@ -37,6 +38,7 @@ public abstract class Counter {
 		this.display_modes = new HashMap<String, BufferedImage>();
 		for (String s : mode_names)
 			this.display_modes.put(s, null);
+		counter_control_panel = this.create_control_panel();
 	}
 
 	/**
@@ -56,7 +58,7 @@ public abstract class Counter {
 	 * 
 	 * @return the constructed J-panel.
 	 */
-	public abstract JPanel create_control_panel();
+	protected abstract JPanel create_control_panel();
 
 	public abstract String[] encode();
 
@@ -66,6 +68,10 @@ public abstract class Counter {
 	 * Returns a clone of this counter
 	 */
 	public abstract Counter clone();
+	
+	public JPanel get_control_panel() {
+		return this.counter_control_panel;
+	}
 
 	/**
 	 * Creates the default J-panel with just the grey threshold control and blob
@@ -80,7 +86,7 @@ public abstract class Counter {
 		JScrollPane scrollPane = new JScrollPane(panel);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-		grey_thresh_component = new SliderTextCombination("Threshold", true, 5, 0, 255, 100, true, 5, 10, 1);
+		grey_thresh_component = new SliderTextCombination("Threshold", true, 5, 3, 255, 100, true, 5, 10, 1);
 		grey_thresh_component.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

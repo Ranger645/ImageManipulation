@@ -90,7 +90,10 @@ public class Window extends JFrame {
 		closeoption.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				close_current_image();
+				if (image_viewers.size() > 0)
+					close_current_image();
+				else
+					System.err.println("No images are currently open.");
 			}
 		});
 		JMenuItem save_imf_file = new JMenuItem("Save as .imf");
@@ -103,7 +106,7 @@ public class Window extends JFrame {
 						"Lock Names", JOptionPane.YES_NO_CANCEL_OPTION);
 				if (result == JOptionPane.CANCEL_OPTION)
 					return;
-				
+
 				IMFFile file;
 				try {
 					file = new IMFFile(self, result == JOptionPane.YES_OPTION);

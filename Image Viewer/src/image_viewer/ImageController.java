@@ -215,7 +215,7 @@ public class ImageController extends JPanel {
 	public void update_counter() {
 		this.count_control_panel.removeAll();
 		this.count_control_panel.setLayout(new GridBagLayout());
-		Utilites.addGridComponent(this.count_control_panel, image.get_counter().create_control_panel(), 0, 0, 1, 1, 1.0,
+		Utilites.addGridComponent(this.count_control_panel, image.get_counter().get_control_panel(), 0, 0, 1, 1, 1.0,
 				1.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL);
 
 		// Updating the display mode combo box:

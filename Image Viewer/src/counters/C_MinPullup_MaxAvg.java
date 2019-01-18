@@ -113,12 +113,24 @@ public class C_MinPullup_MaxAvg extends Counter {
 
 	@Override
 	public String[] encode() {
-		return null;
+		return new String[] { "" + this.grey_thresh_component.get_value(), "" + this.blob_size_component.getValue(),
+				"" + this.minimum_percentage_control.get_value(), "" + this.max_blur_control.getValue(),
+				"" + this.maximum_percentage_control.get_value() };
 	}
 
 	@Override
 	public void decode(String[] to_decode) {
+		if (to_decode.length != 5) {
+			System.err.printf("Invalid number of arguments for MinPullup MaxAvg counter. Expected: %d, Provided: %d", 5,
+					to_decode.length);
+			return;
+		}
 
+		this.grey_thresh_component.set_value(Double.parseDouble(to_decode[0]));
+		this.blob_size_component.setValue(Integer.parseInt(to_decode[1]));
+		this.minimum_percentage_control.set_value(Double.parseDouble(to_decode[2]));
+		this.max_blur_control.setValue(Integer.parseInt(to_decode[3]));
+		this.maximum_percentage_control.set_value(Double.parseDouble(to_decode[4]));
 	}
 
 	@Override

@@ -149,10 +149,10 @@ public class IMFFile {
 
 		Viewer[] viewers = window.get_viewers();
 		int viewer_number = viewers.length;
-		if (viewer_number != images.getLength() - 2)
+		if (viewer_number != (int) (images.getLength() / 2))
 			System.err.printf(
 					"[WARNING]: Number of images expected in the .imf file is %d and the number of open images is %d.\n",
-					images.getLength() - 2, viewer_number);
+					(int) (images.getLength() / 2), viewer_number);
 
 		int image_index = 0;
 		boolean strong_names = false;
@@ -221,6 +221,7 @@ public class IMFFile {
 					Counter counter_object = counter_manager.get_new_counter(counter.getAttribute("type"));
 					counter_object.decode(counter.getTextContent().split(","));
 					viewers[image_index].set_counter(counter_object);
+					viewers[image_index].point_out_blobs();
 					image_index++;
 				} else if (strong_names) {
 					System.err.printf("Image %s is not currently open.\n", image_name);

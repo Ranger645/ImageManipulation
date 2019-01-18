@@ -203,7 +203,6 @@ public class Viewer extends JPanel {
 			}
 		});
 		this.gui_controller.update_counter();
-		this.point_out_blobs();
 	}
 
 }
