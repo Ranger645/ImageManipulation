@@ -233,57 +233,7 @@ public class Window extends JFrame {
 		algo_menu.add(clear_count);
 
 		JMenu batch_menu = new JMenu("Batch");
-		JMenuItem batch_count_res = new JMenuItem("Batch Count res/");
-		batch_count_res.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				BatchCountExecution exec = new BatchCountExecution("res/", "temp/out.csv");
-				Viewer open_viewer = image_viewers.get(tabs.getSelectedIndex());
-				Filter all = new F_Combination(open_viewer.get_filters());
-				exec.execute(all, 75, 10);
-			}
-		});
-		JMenuItem batch_count_gen = new JMenuItem("Batch Count ...");
-		batch_count_gen.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String target_folder = "res";
-				String output_file = "res/out.csv";
-
-				JFileChooser saver = new JFileChooser();
-				saver.setCurrentDirectory(new File(target_folder));
-				saver.setSelectedFile(new File(output_file));
-				int result = saver.showSaveDialog(self);
-				File f = saver.getSelectedFile();
-				if (result != saver.CANCEL_OPTION) {
-					target_folder = f.getParentFile().getAbsolutePath();
-					output_file = target_folder + "/" + f.getName();
-
-					BatchCountExecution exec = new BatchCountExecution(target_folder, output_file);
-					Viewer open_viewer = image_viewers.get(tabs.getSelectedIndex());
-					Filter all = new F_Combination(open_viewer.get_filters());
-					exec.execute(all, 75, 10);
-				}
-			}
-		});
-		JMenuItem batch_count_nd2 = new JMenuItem("Batch Count nd2...");
-		batch_count_nd2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Thread t = new Thread() {
-					public void run() {
-						BackgroundNd2Counter counter = BatchCountConfigWindow.show_config_dialog(self);
-						if (counter == null)
-							return;
-						counter.calculate();
-					}
-				};
-				t.start();
-			}
-		});
-		batch_menu.add(batch_count_res);
-		batch_menu.add(batch_count_gen);
-		batch_menu.add(batch_count_nd2);
+		
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
