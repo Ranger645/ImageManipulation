@@ -32,6 +32,7 @@ import counters.Counter;
 import counters.CounterManager;
 import files.FileUtilities;
 import files.IMFFile;
+import files.ImageLoader;
 import filters.F_Combination;
 import filters.Filter;
 import filters.FilterManager;
@@ -72,18 +73,6 @@ public class Window extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				open_image();
-			}
-		});
-		JMenuItem opennd2option = new JMenuItem("Open nd2");
-		opennd2option.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Thread t = new Thread() {
-					public void run() {
-						import_nd2();
-					}
-				};
-				t.start();
 			}
 		});
 		JMenuItem closeoption = new JMenuItem("Close Current");
@@ -137,7 +126,7 @@ public class Window extends JFrame {
 				}
 			}
 		});
-		JMenuItem open_imf_file = new JMenuItem("Open .imf");
+		JMenuItem open_imf_file = new JMenuItem("Apply .imf");
 		open_imf_file.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -157,7 +146,6 @@ public class Window extends JFrame {
 			}
 		});
 		file_menu.add(openoption);
-		file_menu.add(opennd2option);
 		file_menu.add(open_imf_file);
 		file_menu.add(save_imf_file);
 		file_menu.addSeparator();
@@ -231,10 +219,8 @@ public class Window extends JFrame {
 		algo_menu.addSeparator();
 		algo_menu.add(blob_count);
 		algo_menu.add(clear_count);
-		algo_menu.addSeparator();
 
 		JMenu batch_menu = new JMenu("Batch");
-		
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
@@ -270,72 +256,45 @@ public class Window extends JFrame {
 		this.setVisible(true);
 	}
 
-	public void import_nd2() {
-		String path = "res/";
-		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "header_test1.nd2");
-		if (name == null)
+	protected void add_viewer(Viewer viewer) {
+		if (viewer == null)
 			return;
+		
+		image_viewers.add(viewer);
+		tabs.addTab(viewer.KEY, viewer);
+		viewer.gui_controller.init_window();
 
-		this.close_all_images();
-		ImageConverter.nd2_split(new File(path + name));
-		open_all_files("temp");
+		// Adding the GUI controller to the card layout
+		gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
 	}
-
+	
 	/**
-	 * Opens unique viewers in this window for all the valid image files in the
-	 * given directory path.
-	 * 
-	 * @param path - the string representation of the directory to open all the
-	 *             images inside of.
+	 * This takes in a file pointing to an image to open
+	 * @param image the file that points to the image.
 	 */
-	public void open_all_files(String path) {
-		File directory = new File(path);
-		File[] to_open = directory.listFiles();
-		for (int i = to_open.length - 1; i >= 0; i--) {
-			String file_name = to_open[i].getName();
-			if (file_name.contains(".jpg") || file_name.contains(".png")) {
-				Viewer new_viewer = new Viewer(file_name.substring(0, file_name.indexOf(".")));
-				this.add_viewer(new_viewer, to_open[i]);
-			}
-		}
-	}
-
-	protected void add_viewer(Viewer viewer, File image_file) {
-		try {
-			if (!viewer.set_image(image_file))
-				throw new IOException();
-			image_viewers.add(viewer);
-			tabs.addTab(viewer.KEY, viewer);
-			viewer.gui_controller.init_window();
-
-			// Adding the GUI controller to the card layout
-			gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void open_image(File image) {
+		if (image == null || ! ImageLoader.is_valid_file(image))
+			JOptionPane.showMessageDialog(this, "Error opening file.", "ERROR", JOptionPane.ERROR_MESSAGE);
+		
+		Viewer[] viewers = ImageLoader.load_image(image);
+		for (Viewer viewer : viewers)
+			this.add_viewer(viewer);
+		
 		this.repaint();
 	}
 
 	public void open_image() {
-		String name = JOptionPane.showInputDialog("Enter a file name in the res folder.", "cells_image_5.png");
-
-		this.open_image(name);
+		File to_open = FileUtilities.showFileOpenDialog(new File("res"), this);
+		this.open_image(to_open);
 	}
 
-	public void open_image(String name) {
-		String path = "res/";
-		String[] name_split = name.split("\\.");
-
-		Viewer image_viewer = new Viewer(name_split[0] + "_" + tabs.getTabCount());
-
-		path += name;
-		this.add_viewer(image_viewer, new File(path));
-	}
-
-	public void close_all_images() {
+	public boolean close_all_images() {
+		if (JOptionPane.showConfirmDialog(this, "That operation will close all currently open images. Continue?",
+				"Closing Viewers", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+			return false;
 		while (tabs.getTabCount() > 0)
 			this.close_current_image();
+		return true;
 	}
 
 	public void close_current_image() {

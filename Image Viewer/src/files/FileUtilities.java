@@ -10,7 +10,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import image_viewer.Window;
 
 public class FileUtilities {
-	
+
 	/**
 	 * Shows an open dialog that contains error checking and options for a starting
 	 * directory and extension.
@@ -21,18 +21,18 @@ public class FileUtilities {
 	public static File showFolderOpenDialog(File starting_directory, Window parent) {
 		JFileChooser chooser = new JFileChooser(starting_directory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		
+
 		int result = chooser.showOpenDialog(parent);
 		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
 			return null;
-		
+
 		File selected = chooser.getSelectedFile();
 		if (selected == null || !selected.exists())
 			return null;
 		else
 			return selected;
 	}
-	
+
 	/**
 	 * Shows an open dialog that contains error checking and options for a starting
 	 * directory and extension.
@@ -42,11 +42,11 @@ public class FileUtilities {
 	 */
 	public static File showFileOpenDialog(File starting_directory, Window parent) {
 		JFileChooser chooser = new JFileChooser(starting_directory);
-		
+
 		int result = chooser.showOpenDialog(parent);
 		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
 			return null;
-		
+
 		File selected = chooser.getSelectedFile();
 		if (selected == null || !selected.exists())
 			return null;
@@ -66,18 +66,18 @@ public class FileUtilities {
 		JFileChooser chooser = new JFileChooser(starting_directory);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
 		chooser.setFileFilter(filter);
-		
+
 		int result = chooser.showOpenDialog(parent);
 		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
 			return null;
-		
+
 		File selected = chooser.getSelectedFile();
 		if (selected == null || !selected.exists())
 			return null;
 		else
 			return selected;
 	}
-	
+
 	/**
 	 * Shows a save dialog that contains error checking and options for a starting
 	 * directory, default file name, and extension.
@@ -87,20 +87,21 @@ public class FileUtilities {
 	 * @param extension
 	 * @return
 	 */
-	public static File showFileSaveDialog(File starting_directory, String default_name, String extension, Window parent) {
+	public static File showFileSaveDialog(File starting_directory, String default_name, String extension,
+			Window parent) {
 		JFileChooser chooser = new JFileChooser(starting_directory);
 		File default_file = new File(starting_directory, default_name + "." + extension);
 		chooser.setSelectedFile(default_file);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter(extension + " File", extension);
 		chooser.setFileFilter(filter);
 		int result = chooser.showSaveDialog(parent);
-		
+
 		if (result == JFileChooser.CANCEL_OPTION || result == JFileChooser.ERROR_OPTION)
 			return null;
-		
+
 		return chooser.getSelectedFile();
 	}
-	
+
 	public static List<File> get_files_in_dir_by_type(File directory, String extension) {
 		List<File> embedded_files = new ArrayList<File>();
 		File[] to_search = directory.listFiles();
@@ -117,5 +118,17 @@ public class FileUtilities {
 		}
 		return embedded_files;
 	}
-	
+
+	/**
+	 * Gets a list of files in the given directory that are valid for this program
+	 * to open.
+	 * 
+	 * @param directory the root directory to search for files in.
+	 * @param recursive whether or not to delve down into sub directories.
+	 * @return a List of files that were in that directory and are valid.
+	 */
+	public static List<File> get_valid_files_in_dir(File directory, boolean recursive) {
+		return null;
+	}
+
 }

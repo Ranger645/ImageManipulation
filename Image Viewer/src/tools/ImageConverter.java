@@ -25,8 +25,6 @@ public class ImageConverter {
 	 * @param source - the file to start with
 	 */
 	public static int nd2_split(File source) {
-		WorkingBar.set_text("Opening ND2 File: " + source.getAbsolutePath());
-		WorkingBar.start_working();
 		File root = new File("tools/imagej/scripts/nd2_to_jpg_split.ijm");
 
 		// Deleting all files in the source:
@@ -77,7 +75,6 @@ public class ImageConverter {
 			WorkingBar.stop_working();
 			return -2;
 		}
-		WorkingBar.stop_working();
 		return 1;
 	}
 
