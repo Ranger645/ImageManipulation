@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.ButtonGroup;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -26,17 +25,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.xml.parsers.ParserConfigurationException;
 
-import batch.BackgroundNd2Counter;
-import batch.BatchCountExecution;
+import batch.BatchCountManager;
 import counters.Counter;
 import counters.CounterManager;
 import files.FileUtilities;
 import files.IMFFile;
 import files.ImageLoader;
-import filters.F_Combination;
-import filters.Filter;
 import filters.FilterManager;
-import tools.ImageConverter;
 
 public class Window extends JFrame {
 
@@ -49,6 +44,8 @@ public class Window extends JFrame {
 
 	public FilterManager filter_manager = null;
 	public CounterManager counter_manager = null;
+
+	private BatchCountManager batch_manager = null;
 
 	public static final File DOCUMENTS = new File(System.getProperty("user.home") + File.separator + "Documents");
 	public static final File DOWNLOADS = new File(System.getProperty("user.home") + File.separator + "Downloads");
@@ -221,6 +218,39 @@ public class Window extends JFrame {
 		algo_menu.add(clear_count);
 
 		JMenu batch_menu = new JMenu("Batch");
+		JMenuItem batch_start = new JMenuItem("Start");
+		batch_start.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File batch_root = FileUtilities.showFolderOpenDialog(DOCUMENTS, self);
+				if (batch_root == null)
+					return;
+
+				batch_manager = new BatchCountManager(batch_root);
+				batch_manager.start();
+
+				self.close_all_images();
+				self.add_viewers(batch_manager.get_next_viewers());
+			}
+		});
+		JMenuItem batch_next = new JMenuItem("Next");
+		batch_next.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				self.close_all_images();
+				self.add_viewers(batch_manager.get_next_viewers());
+			}
+		});
+		JMenuItem batch_stop = new JMenuItem("Stop");
+		batch_stop.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				batch_manager.stop_process();
+			}
+		});
+		batch_menu.add(batch_start);
+		batch_menu.add(batch_next);
+		batch_menu.add(batch_stop);
 
 		menu.add(file_menu);
 		menu.add(filter_menu);
@@ -256,10 +286,15 @@ public class Window extends JFrame {
 		this.setVisible(true);
 	}
 
+	protected void add_viewers(Viewer[] viewers) {
+		for (Viewer viewer : viewers)
+			this.add_viewer(viewer);
+	}
+
 	protected void add_viewer(Viewer viewer) {
 		if (viewer == null)
 			return;
-		
+
 		image_viewers.add(viewer);
 		tabs.addTab(viewer.KEY, viewer);
 		viewer.gui_controller.init_window();
@@ -267,19 +302,19 @@ public class Window extends JFrame {
 		// Adding the GUI controller to the card layout
 		gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
 	}
-	
+
 	/**
 	 * This takes in a file pointing to an image to open
+	 * 
 	 * @param image the file that points to the image.
 	 */
 	public void open_image(File image) {
-		if (image == null || ! ImageLoader.is_valid_file(image))
+		if (image == null || !ImageLoader.is_valid_file(image))
 			JOptionPane.showMessageDialog(this, "Error opening file.", "ERROR", JOptionPane.ERROR_MESSAGE);
-		
+
 		Viewer[] viewers = ImageLoader.load_image(image);
-		for (Viewer viewer : viewers)
-			this.add_viewer(viewer);
-		
+		this.add_viewers(viewers);
+
 		this.repaint();
 	}
 

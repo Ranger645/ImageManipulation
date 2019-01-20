@@ -2,6 +2,8 @@ package files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import image_viewer.Viewer;
 import tools.ImageConverter;
@@ -82,16 +84,12 @@ public class ImageLoader {
 	}
 
 	public static File[] get_all_valid_files_in_dir(File directory) {
-		int count = 0;
+		List<File> valid_files = new LinkedList<File>();
 		for (File f : directory.listFiles())
 			if (ImageLoader.is_valid_file(f))
-				count++;
+				valid_files.add(f);
 
-		File[] valid_files = new File[count];
-		for (File f : directory.listFiles())
-			valid_files[--count] = f;
-		
-		return valid_files;
+		return valid_files.toArray(new File[valid_files.size()]);
 	}
 
 }

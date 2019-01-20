@@ -29,7 +29,7 @@ public class BatchCountManager extends Thread {
 				next_viewers = ImageLoader.load_image(file);
 				this.viewers_available = true;
 			}
-			
+
 			boolean waiting = true;
 			while (waiting)
 				synchronized (this) {
@@ -38,6 +38,11 @@ public class BatchCountManager extends Thread {
 		}
 	}
 
+	/**
+	 * Gets the next set of viewers to count.
+	 * 
+	 * @return an array of Viewer objects.
+	 */
 	public Viewer[] get_next_viewers() {
 		// Waiting for viewers to be available:
 		boolean waiting = true;
@@ -49,6 +54,10 @@ public class BatchCountManager extends Thread {
 			}
 
 		return this.next_viewers;
+	}
+
+	public void stop_process() {
+		
 	}
 
 }
