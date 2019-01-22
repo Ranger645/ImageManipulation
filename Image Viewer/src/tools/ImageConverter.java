@@ -57,22 +57,19 @@ public class ImageConverter {
 			BufferedReader stdoutput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 			BufferedReader stderror = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
-			System.out.print("Process Running...");
 			while (proc.isAlive())
 				;
-			System.out.println("Completed.");
 
 			String s = null;
-			while ((s = stdoutput.readLine()) != null) {
-				System.out.println(s);
-			}
+//			while ((s = stdoutput.readLine()) != null) {
+//				System.out.println(s);
+//			}
 			while ((s = stderror.readLine()) != null) {
-				System.out.println(s);
+				System.err.println(s);
 			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			WorkingBar.stop_working();
 			return -2;
 		}
 		return 1;

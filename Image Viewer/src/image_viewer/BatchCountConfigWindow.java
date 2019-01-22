@@ -1,5 +1,6 @@
 package image_viewer;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
@@ -29,6 +30,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "batch_counts.csv";
 	private static BatchCountConfigWindow staticWindow = null;
 
+	private BatchCountConfigWindow self;
 	private JFrame parent = null;
 	private JPanel main_panel = null;
 	private JTextField text_folder, text_config_file, text_output_file;
@@ -37,14 +39,22 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	private int status = -1;
 
-	public static BackgroundNd2Counter show_config_dialog(JFrame parent) {
+	/**
+	 * The static method that should be used to access the batch count config
+	 * window:
+	 * 
+	 * @param parent
+	 * @return an array of files. The files are in the order: {count_root_folder, config_file, output_file}
+	 */
+	public static File[] show_config_dialog(JFrame parent) {
 		if (staticWindow == null) {
 			// Building the window:
 			staticWindow = new BatchCountConfigWindow(parent);
 		}
 		staticWindow.show_window(parent);
 
-		int status = 1;
+		// Waiting for the user to select params:
+		int status;
 		while ((status = staticWindow.get_status()) == 1)
 			try {
 				Thread.sleep(1);
@@ -68,53 +78,49 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 				configFileDefault = config_file.getAbsolutePath();
 				outputFileDefault = output_file.getAbsolutePath();
 
-				try {
-					config = new String(Files.readAllBytes(config_file.toPath()));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				return new BackgroundNd2Counter(count_folder, config, output_file);
+				return new File[] { count_folder, config_file, output_file };
 			} else {
-				System.out.println("Parameters failed tests.");
+				System.err.println("Parameters failed tests.");
 			}
 		}
 		return null;
 	}
 
-	public BatchCountConfigWindow(JFrame parent) {
+	protected BatchCountConfigWindow(JFrame parent) {
+		this.self = this;
 		this.parent = parent;
 		this.setTitle(this.TITLE);
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.addWindowListener(new WindowListener() {
 			@Override
 			public void windowOpened(WindowEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void windowIconified(WindowEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void windowDeiconified(WindowEvent e) {
 			}
-			
+
 			@Override
 			public void windowDeactivated(WindowEvent e) {
 			}
-			
+
 			@Override
 			public void windowClosing(WindowEvent e) {
 				hide_window(-1);
 			}
-			
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 			}
-			
+
 			@Override
-			public void windowActivated(WindowEvent e) {	
+			public void windowActivated(WindowEvent e) {
 			}
 		});
 
@@ -188,7 +194,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	public void show_window(JFrame new_parent) {
 		this.status = 1;
-		
+
 		this.setVisible(true);
 		if (new_parent != null && new_parent.isVisible()) {
 			Point p_loc = new_parent.getLocation();
@@ -232,7 +238,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 			if (result != null)
 				this.text_output_file.setText(result.getAbsolutePath());
 			this.requestFocus();
-		} 
+		}
 	}
 
 }

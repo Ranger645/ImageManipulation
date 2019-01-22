@@ -211,10 +211,12 @@ public class IMFFile {
 							String contents = filter_element.getTextContent();
 
 							Filter filter = filter_manager.get_filter(filter_name);
-							filter.set_params(contents);
 
 							// Adding the filter to the viewer:
 							viewers[image_index].add_filter(filter);
+
+							// Setting the parameters of the viewer:
+							filter.set_params(contents);
 						}
 
 					// Applying the counter:

@@ -222,30 +222,47 @@ public class Window extends JFrame {
 		batch_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File batch_root = FileUtilities.showFolderOpenDialog(DOCUMENTS, self);
-				if (batch_root == null)
-					return;
 
-				batch_manager = new BatchCountManager(batch_root);
-				batch_manager.start();
+				// Getting information about which files/directories to use:
+				Thread batch_start_thread = new Thread() {
+					public void run() {
+						File[] output = BatchCountConfigWindow.show_config_dialog(self);
+						if (output == null)
+							return;
 
-				self.close_all_images();
-				self.add_viewers(batch_manager.get_next_viewers());
+						batch_manager = new BatchCountManager(output[0]);
+						batch_manager.start();
+
+						if (self.close_all_images())
+							self.add_viewers(batch_manager.get_next_viewers());
+						else {
+							batch_manager.stop_process();
+							batch_manager = null;
+						}
+					}
+				};
+				batch_start_thread.start();
 			}
 		});
 		JMenuItem batch_next = new JMenuItem("Next");
 		batch_next.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				self.close_all_images();
-				self.add_viewers(batch_manager.get_next_viewers());
+				if (batch_manager != null && batch_manager.in_progress() && self.close_all_images())
+					self.add_viewers(batch_manager.get_next_viewers());
+				else
+					if (batch_manager == null || !batch_manager.in_progress())
+						System.err.println("No batch process running.");
 			}
 		});
 		JMenuItem batch_stop = new JMenuItem("Stop");
 		batch_stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				batch_manager.stop_process();
+				if (batch_manager != null && batch_manager.in_progress())
+					batch_manager.stop_process();
+				else
+					System.err.println("No batch process running.");
 			}
 		});
 		batch_menu.add(batch_start);
@@ -320,6 +337,9 @@ public class Window extends JFrame {
 
 	public void open_image() {
 		File to_open = FileUtilities.showFileOpenDialog(new File("res"), this);
+		if (to_open == null)
+			return;
+		
 		this.open_image(to_open);
 	}
 

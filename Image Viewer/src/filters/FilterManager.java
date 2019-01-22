@@ -20,7 +20,7 @@ public class FilterManager {
 		filters.put("Red Only", new F_Red());
 		filters.put("Green Only", new F_Green());
 		filters.put("Square-Average", new F_Color_Average_Square());
-		filters.put("Contrast Increase", new F_Contrast_Increase(128));
+		filters.put("Contrast Increase", new F_Contrast_Increase());
 		filters.put("Color Inversion", new F_Invert());
 		filters.put("Multiply", new F_Multiply());
 		filters.put("Greyscale", new F_Make_Greyscale());

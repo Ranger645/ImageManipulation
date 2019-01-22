@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import image_viewer.Window;
@@ -18,7 +19,7 @@ public class FileUtilities {
 	 * @param starting_directory
 	 * @return
 	 */
-	public static File showFolderOpenDialog(File starting_directory, Window parent) {
+	public static File showFolderOpenDialog(File starting_directory, JFrame parent) {
 		JFileChooser chooser = new JFileChooser(starting_directory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
