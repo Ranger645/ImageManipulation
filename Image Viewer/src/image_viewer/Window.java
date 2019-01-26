@@ -230,7 +230,7 @@ public class Window extends JFrame {
 						if (output == null)
 							return;
 
-						batch_manager = new BatchCountManager(output[0]);
+						batch_manager = new BatchCountManager(output[0], output[1], output[2]);
 						batch_manager.start();
 
 						if (self.close_all_images())
@@ -248,11 +248,15 @@ public class Window extends JFrame {
 		batch_next.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (batch_manager != null && batch_manager.in_progress() && self.close_all_images())
+				if (batch_manager != null && batch_manager.in_progress() && self.close_all_images()) {
+					Viewer[] viewers = get_viewers();
+					int[] counts = new int[viewers.length];
+					for (int i = 0; i < counts.length; i++)
+						counts[i] = viewers[i].get_blob_count();
+					batch_manager.write_file_line("", counts);
 					self.add_viewers(batch_manager.get_next_viewers());
-				else
-					if (batch_manager == null || !batch_manager.in_progress())
-						System.err.println("No batch process running.");
+				} else if (batch_manager == null || !batch_manager.in_progress())
+					System.err.println("No batch process running.");
 			}
 		});
 		JMenuItem batch_stop = new JMenuItem("Stop");
@@ -337,9 +341,10 @@ public class Window extends JFrame {
 
 	public void open_image() {
 		File to_open = FileUtilities.showFileOpenDialog(new File("res"), this);
-		if (to_open == null)
-			return;
-		
+		if (to_open == null) {
+			System.out.println("No file to open selected.");
+		}
+
 		this.open_image(to_open);
 	}
 

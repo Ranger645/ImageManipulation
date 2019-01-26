@@ -10,6 +10,7 @@ public class Blob {
 	public List<Point> points = null;
 	public List<Point> edge_points = null;
 	private int count = 1;
+	private Point computed_center = null;
 
 	// The variable that will be used for coloring. Smaller points will be negative
 	// and bigger points will be positive.
@@ -35,6 +36,8 @@ public class Blob {
 	}
 
 	public Point compute_average_point() {
+		if (this.computed_center != null)
+			return this.computed_center;
 		Point average = new Point(0, 0);
 		for (Point p : this.points) {
 			average.x += p.x;
@@ -42,7 +45,8 @@ public class Blob {
 		}
 		average.x /= points.size();
 		average.y /= points.size();
-		return average;
+		this.computed_center = average;
+		return this.computed_center;
 	}
 
 	public String toString() {

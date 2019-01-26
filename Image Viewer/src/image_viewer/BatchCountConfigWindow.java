@@ -44,7 +44,8 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 	 * window:
 	 * 
 	 * @param parent
-	 * @return an array of files. The files are in the order: {count_root_folder, config_file, output_file}
+	 * @return an array of files. The files are in the order: {count_root_folder,
+	 *         config_file, output_file}
 	 */
 	public static File[] show_config_dialog(JFrame parent) {
 		if (staticWindow == null) {
@@ -66,10 +67,8 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 			File count_folder = new File(staticWindow.get_folder_name());
 			File config_file = new File(staticWindow.get_config_file_name());
 			File output_file = new File(staticWindow.get_output_file_name());
-
-			System.out.print("Got parameters, testing...");
-			if (count_folder.exists() && count_folder.isDirectory() && config_file.exists()
-					&& config_file.getName().endsWith(".batch")) {
+			
+			if (count_folder.exists() && count_folder.isDirectory() && config_file.exists()) {
 				String config = "";
 				System.out.println("Paramamters passed tests.");
 
@@ -227,7 +226,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 		} else if (e.getSource() == this.btn_config_file_select) {
 			File current = new File(this.text_config_file.getText());
 			current = current.exists() ? current : new File(BatchCountConfigWindow.configFileDefault);
-			File result = FileUtilities.showFileOpenDialog(current, "batch", (Window) this.parent);
+			File result = FileUtilities.showFileOpenDialog(current, "imf", (Window) this.parent);
 			if (result != null)
 				this.text_config_file.setText(result.getAbsolutePath());
 			this.requestFocus();

@@ -37,6 +37,8 @@ public class Viewer extends JPanel {
 	public ImageController gui_controller = null;
 	public String KEY = "";
 
+	private int last_blob_count = -1;
+
 	public Viewer(String key) {
 		super();
 
@@ -85,7 +87,71 @@ public class Viewer extends JPanel {
 			int blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
 
 			// Updating the text display with the count:
-			WorkingBar.set_text(String.format("Counted %d blobs.\n", blob_count));
+			this.last_blob_count = blob_count;
+			WorkingBar.set_text(String.format("Counted %d blobs.\n", this.last_blob_count));
+		}
+	}
+
+	/**
+	 * Adds or removes a blob at the given spot. There are basically four cases that
+	 * can happen: ADDING Blob count of existing blob is increased by 1 New blob is
+	 * added REMOVING Nearest blob is removed or has 1 subtracted from it Nothing
+	 * happens
+	 * 
+	 * @param x            - the x value to start at
+	 * @param y            - the y value to start at
+	 * @param max_distance - the max distance from the x and y that the (x, y) point
+	 *                     can be.
+	 * @param add          - the option to add a blob or subtract one.
+	 */
+	public void edit_closest_blob(int x, int y, double max_distance, boolean add) {
+		if (this.last_blobs == null || this.last_blobs.size() == 0)
+			return;
+
+		Point offset_point = image_transform.get_image_position();
+		int width = (int) (image_steps.get(image_steps.size() - 1).getWidth() * (this.zoom_percentage / 100.0));
+		int height = (int) (image_steps.get(image_steps.size() - 1).getHeight() * (this.zoom_percentage / 100.0));
+		int x_off = this.getWidth() / 2 - width / 2 + offset_point.x;
+		int y_off = this.getHeight() / 2 - height / 2 + offset_point.y;
+		x -= x_off;
+		y -= y_off;
+		int closest_index = -1;
+		double closest_point = this.last_blobs.get(0).compute_average_point().distanceSq(new Point(x, y));
+
+		if (x < -max_distance || y < -max_distance || x > max_distance + width || y > max_distance + height)
+			return;
+
+		max_distance *= max_distance;
+		for (int i = 0; i < this.last_blobs.size(); i++) {
+			Blob b = this.last_blobs.get(i);
+			double dist = b.compute_average_point().distanceSq((double) x, (double) y);
+			if (dist <= max_distance && dist <= closest_point)
+				closest_index = i;
+		}
+
+		if (closest_index == -1 && (x < 0 || y < 0 || x > width || y > height))
+			return;
+
+		if (add) {
+			// Adding a blob:
+			if (closest_index == -1) {
+				// Adding a new blob:
+				List<Point> point = new ArrayList<Point>();
+				point.add(new Point(x, y));
+				this.last_blobs.add(new Blob(point));
+			} else {
+				// Adding to an existing blob:
+				this.last_blobs.get(closest_index).set_count(this.last_blobs.get(closest_index).get_count() + 1);
+			}
+		} else {
+			// Removing a blob:
+			if (closest_index != -1) {
+				// Removing from an existing blob:
+				if (this.last_blobs.get(closest_index).get_count() == 1)
+					this.last_blobs.remove(closest_index);
+				else
+					this.last_blobs.get(closest_index).set_count(this.last_blobs.get(closest_index).get_count() - 1);
+			}
 		}
 	}
 
@@ -181,11 +247,10 @@ public class Viewer extends JPanel {
 	public List<Filter> get_filters() {
 		return this.filters;
 	}
-	
+
 	public void set_continuous_blob_finding(boolean finding) {
 		this.continuous_blob_finding = finding;
 	}
-
 
 	public void recenter_display() {
 		this.image_transform.recenter();
@@ -204,6 +269,10 @@ public class Viewer extends JPanel {
 			}
 		});
 		this.gui_controller.update_counter();
+	}
+
+	public int get_blob_count() {
+		return this.last_blob_count;
 	}
 
 }

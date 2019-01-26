@@ -32,13 +32,17 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 	@Override
 	public void mousePressed(MouseEvent e) {
 		left_clicked = e.getButton() == MouseEvent.BUTTON1;
-		right_clicked = e.getButton() == MouseEvent.BUTTON2;
+		right_clicked = e.getButton() == MouseEvent.BUTTON3;
+		if (left_clicked == !right_clicked) {
+			this.image.edit_closest_blob(e.getX(), e.getY(), 5, left_clicked);
+			this.image.repaint();
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		left_clicked = e.getButton() == MouseEvent.BUTTON1 ? false : left_clicked;
-		right_clicked = e.getButton() == MouseEvent.BUTTON2 ? false : left_clicked;
+		right_clicked = e.getButton() == MouseEvent.BUTTON3 ? false : left_clicked;
 		this.mouse_x = -1;
 		this.mouse_y = -1;
 	}
@@ -59,7 +63,7 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 			this.mouse_y = e.getY();
 			return;
 		}
-		
+
 		// Every other time:
 		if (e.getButton() == MouseEvent.BUTTON1) {
 			int offset_x = e.getX() - this.mouse_x;
@@ -76,13 +80,14 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-
+		this.mouse_x = e.getX();
+		this.mouse_y = e.getY();
 	}
 
 	public Point get_image_position() {
 		return new Point(this.image_x, this.image_y);
 	}
-	
+
 	public void recenter() {
 		this.image_x = 0;
 		this.image_y = 0;
