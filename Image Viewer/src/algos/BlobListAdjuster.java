@@ -25,8 +25,8 @@ public class BlobListAdjuster {
 	 * @param max_number
 	 */
 	public static void adjust_max_size_split(List<Blob> blobs, int min_number, int max_number) {
+		
 		Collections.sort(blobs, new BlobSortBySize());
-
 		int sum = 0;
 		double summed = blobs.size() - min_number - max_number;
 		for (int i = 0; i < summed; i++)
@@ -44,7 +44,7 @@ public class BlobListAdjuster {
 	public static List<Blob> adjust_max_avg_sqr(List<Blob> blobs, BufferedImage original_image, int max_number,
 			int max_avg_sqr, int grey_thresh, int min_blob_size) {
 		Collections.sort(blobs, new BlobSortBySize());
-
+		
 		// Setting up the blank image to filter:
 		BufferedImage large_blob_image = new BufferedImage(original_image.getWidth(), original_image.getHeight(),
 				original_image.getType());
@@ -89,7 +89,7 @@ public class BlobListAdjuster {
 	 */
 	public static List<Blob> adjust_min_mult(List<Blob> blobs, BufferedImage original_image, int min_number,
 			double min_mult, int grey_thresh, int min_blob_size) {
-		// Sorting the blobs and getting the number of small ones:
+		
 		Collections.sort(blobs, new BlobSortBySize());
 
 		// Setting up the blank image to filter:
@@ -124,7 +124,7 @@ public class BlobListAdjuster {
 
 	public static List<Blob> adjust_max_threshold(List<Blob> blobs, BufferedImage original_image, int max_number,
 			int grey_thresh, int min_blob_size, int threshold) {
-		// Sorting the blobs and getting the number of small ones:
+		
 		Collections.sort(blobs, new BlobSortBySize());
 
 		// Setting up the blank image to filter:

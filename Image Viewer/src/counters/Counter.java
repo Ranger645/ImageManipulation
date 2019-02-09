@@ -68,7 +68,7 @@ public abstract class Counter {
 	 * Returns a clone of this counter
 	 */
 	public abstract Counter clone();
-	
+
 	public JPanel get_control_panel() {
 		return this.counter_control_panel;
 	}
@@ -143,24 +143,30 @@ public abstract class Counter {
 		return this.display_modes.get(key);
 	}
 
+	protected void add_display_mode(String key, BufferedImage image) {
+		this.display_modes.put(key, image);
+	}
+
 	protected void add_blob_cover_display_mode(BufferedImage original, String key, List<Blob> blobs, int start, int end,
 			Color main_color, Color edge_color) {
 		if (start > end)
 			return;
 
 		int rgb = main_color.getRGB();
+		boolean main_translucent = main_color.getAlpha() == 0;
 		int rgb_secondary = edge_color.getRGB();
 
 		BufferedImage display = new BufferedImage(original.getWidth(), original.getHeight(), original.getType());
 		display.createGraphics().drawImage(original, 0, 0, null);
 		for (int i = start; i < end; i++) {
-			for (Point p : blobs.get(i).points)
-				display.setRGB(p.x, p.y, rgb);
+			if (!main_translucent)
+				for (Point p : blobs.get(i).points)
+					display.setRGB(p.x, p.y, rgb);
 			for (Point p : blobs.get(i).edge_points)
 				display.setRGB(p.x, p.y, rgb_secondary);
 		}
 
-		this.display_modes.put(key, display);
+		this.add_display_mode(key, display);
 	}
 
 	protected void add_blob_cover_display_mode(BufferedImage original, String key, List<Blob> blobs, int start, int end,

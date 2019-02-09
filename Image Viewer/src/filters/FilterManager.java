@@ -9,13 +9,13 @@ import counters.Counter;
 
 public class FilterManager {
 
-	private Map<String, Filter> filters = new HashMap<String, Filter>();
+	private static Map<String, Filter> filters = new HashMap<String, Filter>();
 
 	/**
 	 * Stores a hash-map of string representations of each filter to the associated
 	 * class for that filter.
 	 */
-	public FilterManager() {
+	public static void initialize() {
 		filters.put("Blue Only", new F_Blue());
 		filters.put("Red Only", new F_Red());
 		filters.put("Green Only", new F_Green());
@@ -27,7 +27,7 @@ public class FilterManager {
 		filters.put("Threshold", new F_Threshold(10));
 	}
 
-	public String encode_filters(List<Filter> to_encode) {
+	public static String encode_filters(List<Filter> to_encode) {
 		String encoded = "";
 		for (Filter f : to_encode) {
 			String key = "";
@@ -41,12 +41,12 @@ public class FilterManager {
 		return encoded;
 	}
 
-	public List<Filter> decode_filters(String to_decode) {
+	public static List<Filter> decode_filters(String to_decode) {
 		String[] filter_lines = to_decode.split("\n");
 		List<Filter> filters = new ArrayList<Filter>();
 		for (String line : filter_lines) {
 			String filter_name = line.substring(0, line.indexOf(","));
-			Filter f = this.filters.get(filter_name).clone();
+			Filter f = FilterManager.filters.get(filter_name).clone();
 
 			String filter_params = "";
 			if (line.indexOf(",") != line.length() - 1)
@@ -57,21 +57,21 @@ public class FilterManager {
 		return filters;
 	}
 
-	public Filter get_filter(String name) {
+	public static Filter get_filter(String name) {
 		return (Filter) filters.get(name).clone();
 	}
 
-	public String[] get_filter_names() {
+	public static String[] get_filter_names() {
 		return filters.keySet().toArray(new String[filters.size()]);
 	}
 
-	public void add_filter(String name, Filter f) {
+	public static void add_filter(String name, Filter f) {
 		filters.put(name, f);
 	}
 
-	public String get_filter_key(Filter f) {
-		for (String key : this.filters.keySet())
-			if (f.getClass().getName().equals(this.filters.get(key).getClass().getName()))
+	public static String get_filter_key(Filter f) {
+		for (String key : filters.keySet())
+			if (f.getClass().getName().equals(filters.get(key).getClass().getName()))
 				return key;
 		return null;
 

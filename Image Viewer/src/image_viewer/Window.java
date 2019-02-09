@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +43,6 @@ public class Window extends JFrame {
 	private JPanel gui_filter_managers = null;
 	private Window self = null;
 
-	public FilterManager filter_manager = null;
 	public CounterManager counter_manager = null;
 
 	private BatchCountManager batch_manager = null;
@@ -57,8 +57,8 @@ public class Window extends JFrame {
 		this.setSize(1000, 700);
 		this.setTitle(TITLE);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		filter_manager = new FilterManager();
-		counter_manager = new CounterManager();
+		FilterManager.initialize();
+		this.counter_manager = new CounterManager();
 		tabs.setSize(800, 650);
 
 		// Creating the menu bar:
@@ -149,7 +149,7 @@ public class Window extends JFrame {
 		file_menu.add(closeoption);
 
 		JMenu filter_menu = new JMenu("Filter");
-		String[] filter_names = filter_manager.get_filter_names();
+		String[] filter_names = FilterManager.get_filter_names();
 		for (String name : filter_names) {
 			JMenuItem item = new JMenuItem(name);
 			item.addActionListener(new ActionListener() {
@@ -248,13 +248,20 @@ public class Window extends JFrame {
 		batch_next.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (batch_manager != null && batch_manager.in_progress() && self.close_all_images()) {
-					Viewer[] viewers = get_viewers();
+				Viewer[] viewers = get_viewers();
+				if (batch_manager != null && (batch_manager.in_progress() || batch_manager.is_on_last())
+						&& self.close_all_images()) {
 					int[] counts = new int[viewers.length];
 					for (int i = 0; i < counts.length; i++)
 						counts[i] = viewers[i].get_blob_count();
-					batch_manager.write_file_line("", counts);
+					batch_manager.write_file_line(batch_manager.get_file_name(), counts);
 					self.add_viewers(batch_manager.get_next_viewers());
+					if (batch_manager.is_on_last()) {
+						WorkingBar.set_text(
+								"Batch count completed, output saved to " + batch_manager.get_output_path_string());
+						batch_manager.stop_process();
+						repaint();
+					}
 				} else if (batch_manager == null || !batch_manager.in_progress())
 					System.err.println("No batch process running.");
 			}
@@ -318,7 +325,6 @@ public class Window extends JFrame {
 
 		image_viewers.add(viewer);
 		tabs.addTab(viewer.KEY, viewer);
-		viewer.gui_controller.init_window();
 
 		// Adding the GUI controller to the card layout
 		gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
@@ -381,6 +387,8 @@ public class Window extends JFrame {
 		Viewer[] viewers = new Viewer[this.image_viewers.size()];
 		for (int i = 0; i < viewers.length; i++)
 			viewers[i] = this.image_viewers.get(i);
+		if (viewers.length == 0)
+			return viewers;
 		Viewer first = viewers[0];
 		viewers[0] = this.get_selected_viewer();
 		viewers[this.image_viewers.indexOf(this.get_selected_viewer())] = first;
@@ -388,7 +396,7 @@ public class Window extends JFrame {
 	}
 
 	public void add_filter(String name) {
-		this.get_selected_viewer().add_filter(filter_manager.get_filter(name));
+		this.get_selected_viewer().add_filter(FilterManager.get_filter(name));
 		this.repaint();
 	}
 

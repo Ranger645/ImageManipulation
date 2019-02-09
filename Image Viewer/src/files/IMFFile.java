@@ -87,7 +87,7 @@ public class IMFFile {
 
 				// Setting the filters' types:
 				Attr type_attr = this.imf_file.createAttribute("type");
-				type_attr.setValue(filter_manager.get_filter_key(filter));
+				type_attr.setValue(FilterManager.get_filter_key(filter));
 				filter_element.setAttributeNode(type_attr);
 
 				// Adding the filter's parameters
@@ -137,17 +137,21 @@ public class IMFFile {
 		System.err.println("[ERROR]: Problem occured while parsing " + file.getAbsolutePath());
 		return null;
 	}
+	
+	public void apply_to_window(Window window) {
+		this.apply_to_viewers(window.get_viewers());
+		window.repaint();
+	}
 
 	/**
 	 * Applies this IMF file to the contents of the window
 	 * 
-	 * @param window
+	 * @param viewers - the array of viewers to apply to.
 	 */
-	public void apply_to_window(Window window) {
+	public void apply_to_viewers(Viewer[] viewers) {
 		Element imf_root = (Element) this.imf_file.getFirstChild();
 		NodeList images = imf_root.getChildNodes();
 
-		Viewer[] viewers = window.get_viewers();
 		int viewer_number = viewers.length;
 		if (viewer_number != (int) (images.getLength() / 2))
 			System.err.printf(
@@ -179,7 +183,6 @@ public class IMFFile {
 					counter = holder;
 				}
 
-				FilterManager filter_manager = new FilterManager();
 				CounterManager counter_manager = new CounterManager();
 
 				// If there are strong names then we set the image index to the image with this
@@ -196,7 +199,6 @@ public class IMFFile {
 				// Applying the counter and filters to the viewer if the index i is less than
 				// the number of viewers:
 				if (image_index < viewers.length) {
-					System.out.println("Applying settings to " + viewers[image_index].KEY);
 					viewers[image_index].clear_filters();
 
 					// Applying the filter list:
@@ -210,7 +212,7 @@ public class IMFFile {
 							// Now we have to get its contents:
 							String contents = filter_element.getTextContent();
 
-							Filter filter = filter_manager.get_filter(filter_name);
+							Filter filter = FilterManager.get_filter(filter_name);
 
 							// Adding the filter to the viewer:
 							viewers[image_index].add_filter(filter);
@@ -230,7 +232,6 @@ public class IMFFile {
 				}
 			}
 		}
-		window.repaint();
 	}
 
 	/**

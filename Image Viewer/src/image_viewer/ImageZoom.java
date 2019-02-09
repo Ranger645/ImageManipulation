@@ -27,10 +27,6 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
 		left_clicked = e.getButton() == MouseEvent.BUTTON1;
 		right_clicked = e.getButton() == MouseEvent.BUTTON3;
 		if (left_clicked == !right_clicked) {
@@ -40,9 +36,11 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 	}
 
 	@Override
+	public void mousePressed(MouseEvent e) {
+	}
+
+	@Override
 	public void mouseReleased(MouseEvent e) {
-		left_clicked = e.getButton() == MouseEvent.BUTTON1 ? false : left_clicked;
-		right_clicked = e.getButton() == MouseEvent.BUTTON3 ? false : left_clicked;
 		this.mouse_x = -1;
 		this.mouse_y = -1;
 	}

@@ -6,7 +6,6 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -19,17 +18,14 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import counters.Counter;
 import filters.F_Combination;
 import filters.Filter;
+import filters.FilterManager;
 
 public class ImageController extends JPanel {
 
@@ -144,8 +140,8 @@ public class ImageController extends JPanel {
 						for (int i = selected.length - 1; i >= 0; i--)
 							image.remove_filter(selected[i]);
 						Filter new_fil = new F_Combination(fil);
-						window.filter_manager.add_filter(name, new_fil);
-						image.add_filter(window.filter_manager.get_filter(name), selected[0]);
+						FilterManager.add_filter(name, new_fil);
+						image.add_filter(FilterManager.get_filter(name), selected[0]);
 					}
 				}
 			}
@@ -183,10 +179,6 @@ public class ImageController extends JPanel {
 		}
 	}
 
-	public void init_window() {
-		this.window = (Window) image.getParent().getParent().getParent().getParent().getParent().getParent();
-	}
-
 	public Window get_window() {
 		return this.window;
 	}
@@ -208,9 +200,9 @@ public class ImageController extends JPanel {
 	}
 
 	private String get_filter_name(Filter f) {
-		String[] names = this.window.filter_manager.get_filter_names();
+		String[] names = FilterManager.get_filter_names();
 		for (String name : names)
-			if (this.window.filter_manager.get_filter(name).getClass().getName() == f.getClass().getName())
+			if (FilterManager.get_filter(name).getClass().getName() == f.getClass().getName())
 				return name;
 		return "NULL";
 	}

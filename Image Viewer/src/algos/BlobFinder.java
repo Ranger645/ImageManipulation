@@ -42,7 +42,8 @@ public class BlobFinder {
 				}
 			}
 		}
-
+		
+		Collections.sort(blobs, new BlobSortBySize());
 		return blobs;
 	}
 
@@ -149,7 +150,7 @@ public class BlobFinder {
 				surrounding_count++;
 			}
 			set_val(0, test, pixels, width);
-			
+
 			// bottom left
 			test = new Point(current.x - 1, current.y + 1);
 			if (get_val(test, original, width) >= grey_thresh) {

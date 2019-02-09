@@ -23,7 +23,7 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 	private SliderTextCombination minimum_percentage_control, minimum_multiplier, maximum_percentage_control;
 
 	public C_MinMult_MaxSizeSplit() {
-		super(new String[] { "Black/White" });
+		super(new String[] { "Blob View", "Big Blob Boundaries" });
 	}
 
 	@Override
@@ -38,7 +38,9 @@ public class C_MinMult_MaxSizeSplit extends Counter {
 		for (Blob blob : blobs)
 			for (Point point : blob.points)
 				black_white_image.setRGB(point.x, point.y, Color.GRAY.getRGB());
-		this.display_modes.put("Black/White", black_white_image);
+		this.add_display_mode("Blob View", black_white_image);
+		Color clear = new Color(0, 0, 0, 0);
+		this.add_blob_cover_display_mode(image, "Big Blob Boundaries", blobs, 0, blobs.size(), clear, Color.YELLOW);
 
 		// Computing the number of minimums and maximums:
 		int minimum_number = (int) (blobs.size() * (minimum_percentage_control.get_value() / 100.0));

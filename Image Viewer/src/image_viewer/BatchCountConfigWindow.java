@@ -26,8 +26,8 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	private final String TITLE = "Nd2 Batch Count Configuration";
 	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath();
-	private static String configFileDefault = "/Users/gregfoss/git/ImageManipulation/Image Viewer/res/test.batch";
-	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "batch_counts.csv";
+	private static String configFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "default.imf";
+	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "output.csv";
 	private static BatchCountConfigWindow staticWindow = null;
 
 	private BatchCountConfigWindow self;
