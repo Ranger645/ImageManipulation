@@ -130,8 +130,6 @@ public class Viewer extends JPanel {
 		if (this.last_blobs.size() != 0) {
 
 			double closest_point = this.last_blobs.get(0).compute_average_point().distanceSq(new Point(x, y));
-			if (x < -max_distance || y < -max_distance || x > max_distance + width || y > max_distance + height)
-				return;
 
 			max_distance *= max_distance;
 			for (int i = 0; i < this.last_blobs.size(); i++) {
@@ -141,9 +139,10 @@ public class Viewer extends JPanel {
 					closest_index = i;
 			}
 
-			if (closest_index == -1 && (x < 0 || y < 0 || x > width || y > height))
-				return;
-
+		}
+		
+		if (closest_index == -1 && (x < 0 || y < 0 || x > original.getWidth() || y > original.getHeight())) {
+			return;
 		}
 
 		if (add) {
@@ -155,6 +154,7 @@ public class Viewer extends JPanel {
 				this.last_blobs.add(new Blob(point));
 			} else {
 				// Adding to an existing blob:
+				System.out.println("Adding with closest blob");
 				this.last_blobs.get(closest_index).set_count(this.last_blobs.get(closest_index).get_count() + 1);
 			}
 		} else {
