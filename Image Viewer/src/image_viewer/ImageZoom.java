@@ -10,7 +10,7 @@ import java.awt.event.MouseWheelListener;
 public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotionListener {
 
 	private Viewer image;
-	private int image_x = 0, image_y = 0, mouse_x = -1, mouse_y = -1;
+	private int image_x = 0, image_y = 0, mouse_x = -1, mouse_y = -1, floating_mouse_x = 0, floating_mouse_y = 0, dzoom = 0;
 	private boolean left_clicked, right_clicked;
 
 	public ImageZoom(Viewer image) {
@@ -19,9 +19,7 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		this.image.zoom_percentage += e.getWheelRotation();
-		this.image.zoom_percentage = Math.max(this.image.zoom_percentage, 5);
-		this.image.zoom_percentage = Math.min(this.image.zoom_percentage, 500);
+		dzoom += -e.getWheelRotation();
 		this.image.repaint();
 	}
 
@@ -80,6 +78,19 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 	public void mouseMoved(MouseEvent e) {
 		this.mouse_x = e.getX();
 		this.mouse_y = e.getY();
+		floating_mouse_x = e.getX();
+		floating_mouse_y = e.getY();
+	}
+	
+	public int get_zoom_differential() {
+		int zoom = this.dzoom;
+		this.dzoom = 0;
+		return zoom;
+	}
+	
+	public void apply_offset_multiplier(double multiplier) {
+		this.mouse_x *= multiplier;
+		this.mouse_y *= multiplier;
 	}
 
 	public Point get_image_position() {

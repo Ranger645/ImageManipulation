@@ -24,9 +24,9 @@ import files.FileUtilities;
 
 public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
-	private final String TITLE = "Nd2 Batch Count Configuration";
-	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath();
-	private static String configFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "default.imf";
+	private final String TITLE = "Batch Count Configuration";
+	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "nd2_batch_test";
+	private static String configFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "nd2_imf_test1.imf";
 	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "output.csv";
 	private static BatchCountConfigWindow staticWindow = null;
 

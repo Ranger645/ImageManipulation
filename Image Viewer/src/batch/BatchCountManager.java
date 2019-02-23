@@ -56,6 +56,7 @@ public class BatchCountManager extends Thread {
 				this.viewers_available = true;
 			}
 
+			// Waiting for the user to count every time except the last time.
 			boolean waiting = true;
 			while (waiting && keep_going)
 				synchronized (this) {
@@ -65,7 +66,7 @@ public class BatchCountManager extends Thread {
 			if (!keep_going)
 				return;
 		}
-		this.keep_going = false;
+		this.stop_process();
 	}
 
 	/**
@@ -122,7 +123,15 @@ public class BatchCountManager extends Thread {
 	public Viewer[] get_next_viewers() {
 		// Waiting for viewers to be available:
 		boolean waiting = true;
+		
+		// Writing current viewer counts to file:
+		int[] counts = new int[this.next_viewers.length];
+		for (int i = 0; i < counts.length; i++)
+			counts[i] = this.next_viewers[i].get_blob_count();
+		// Writing the blob counts to the file
+		this.write_file_line(this.get_file_name(), counts);
 
+		// Waiting for the run method of this thread to load the viewers:
 		WorkingBar.set_text("Waiting for image to load.");
 		WorkingBar.start_working();
 		while (waiting && keep_going)
@@ -137,10 +146,12 @@ public class BatchCountManager extends Thread {
 		if (!keep_going)
 			return null;
 
+		System.out.println("Returning next viewers");
 		return this.next_viewers;
 	}
 
 	public void stop_process() {
+		System.out.println("Stopping batch load process.");
 		this.keep_going = false;
 		this.current_index = this.total_files;
 	}

@@ -1,5 +1,6 @@
 package image_viewer;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -76,6 +77,11 @@ public class Viewer extends JPanel {
 			}
 
 			// Doing the math on the zoom and offsets:
+			int zoom_diff = this.image_transform.get_zoom_differential();
+			this.zoom_percentage += zoom_diff;
+			double offset_multiplier = this.zoom_percentage / (this.zoom_percentage - zoom_diff);
+			this.image_transform.apply_offset_multiplier(offset_multiplier);
+
 			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
 			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
 			Point offset_point = image_transform.get_image_position();
@@ -105,32 +111,40 @@ public class Viewer extends JPanel {
 	 * @param add          - the option to add a blob or subtract one.
 	 */
 	public void edit_closest_blob(int x, int y, double max_distance, boolean add) {
-		if (this.last_blobs == null || this.last_blobs.size() == 0)
+		if (this.last_blobs == null)
 			return;
 
-		Point offset_point = image_transform.get_image_position();
-		int width = (int) (image_steps.get(image_steps.size() - 1).getWidth() * (this.zoom_percentage / 100.0));
-		int height = (int) (image_steps.get(image_steps.size() - 1).getHeight() * (this.zoom_percentage / 100.0));
-		int x_off = this.getWidth() / 2 - width / 2 + offset_point.x;
-		int y_off = this.getHeight() / 2 - height / 2 + offset_point.y;
-		x -= x_off;
-		y -= y_off;
 		int closest_index = -1;
-		double closest_point = this.last_blobs.get(0).compute_average_point().distanceSq(new Point(x, y));
+		BufferedImage original = image_steps.get(image_steps.size() - 1);
+		int width = (int) (original.getWidth() * (this.zoom_percentage / 100.0));
+		int height = (int) (original.getHeight() * (this.zoom_percentage / 100.0));
+		Point offset_point = image_transform.get_image_position();
+		int image_corner_x = this.getWidth() / 2 - width / 2 + offset_point.x;
+		int image_corner_y = this.getHeight() / 2 - height / 2 + offset_point.y;
 
-		if (x < -max_distance || y < -max_distance || x > max_distance + width || y > max_distance + height)
-			return;
+		x -= image_corner_x;
+		y -= image_corner_y;
+		x *= original.getWidth() / (double) width;
+		y *= original.getHeight() / (double) height;
+		
+		if (this.last_blobs.size() != 0) {
 
-		max_distance *= max_distance;
-		for (int i = 0; i < this.last_blobs.size(); i++) {
-			Blob b = this.last_blobs.get(i);
-			double dist = b.compute_average_point().distanceSq((double) x, (double) y);
-			if (dist <= max_distance && dist <= closest_point)
-				closest_index = i;
+			double closest_point = this.last_blobs.get(0).compute_average_point().distanceSq(new Point(x, y));
+			if (x < -max_distance || y < -max_distance || x > max_distance + width || y > max_distance + height)
+				return;
+
+			max_distance *= max_distance;
+			for (int i = 0; i < this.last_blobs.size(); i++) {
+				Blob b = this.last_blobs.get(i);
+				double dist = b.compute_average_point().distanceSq((double) x, (double) y);
+				if (dist <= max_distance && dist <= closest_point)
+					closest_index = i;
+			}
+
+			if (closest_index == -1 && (x < 0 || y < 0 || x > width || y > height))
+				return;
+
 		}
-
-		if (closest_index == -1 && (x < 0 || y < 0 || x > width || y > height))
-			return;
 
 		if (add) {
 			// Adding a blob:

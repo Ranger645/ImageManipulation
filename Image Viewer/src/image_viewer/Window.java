@@ -248,22 +248,32 @@ public class Window extends JFrame {
 		batch_next.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Viewer[] viewers = get_viewers();
-				if (batch_manager != null && (batch_manager.in_progress() || batch_manager.is_on_last())
-						&& self.close_all_images()) {
-					int[] counts = new int[viewers.length];
-					for (int i = 0; i < counts.length; i++)
-						counts[i] = viewers[i].get_blob_count();
-					batch_manager.write_file_line(batch_manager.get_file_name(), counts);
-					self.add_viewers(batch_manager.get_next_viewers());
-					if (batch_manager.is_on_last()) {
-						WorkingBar.set_text(
-								"Batch count completed, output saved to " + batch_manager.get_output_path_string());
-						batch_manager.stop_process();
-						repaint();
+
+				// Saving the viewers if the user does decide to move on:
+				Thread batch_next_thread = new Thread() {
+					public void run() {
+						Viewer[] viewers = get_viewers();
+
+						if (batch_manager != null && (batch_manager.in_progress() || batch_manager.is_on_last())
+								&& self.close_all_images()) {
+
+							// Getting the next viewers from the batch manager and adding them to this
+							// window.
+							Viewer[] arr = batch_manager.get_next_viewers();
+							System.out.println("Viewer Number = " + arr.length);
+							self.add_viewers(arr);
+
+							// If the batch manager
+							if (batch_manager.is_on_last()) {
+								WorkingBar.set_text("Batch count completed, output saved to "
+										+ batch_manager.get_output_path_string());
+								repaint();
+							}
+						} else if (batch_manager == null || !batch_manager.in_progress())
+							System.err.println("No batch process running.");
 					}
-				} else if (batch_manager == null || !batch_manager.in_progress())
-					System.err.println("No batch process running.");
+				};
+				batch_next_thread.start();
 			}
 		});
 		JMenuItem batch_stop = new JMenuItem("Stop");
@@ -314,9 +324,12 @@ public class Window extends JFrame {
 		this.setVisible(true);
 	}
 
-	protected void add_viewers(Viewer[] viewers) {
+	protected int add_viewers(Viewer[] viewers) {
+		if (viewers == null)
+			return 0;
 		for (Viewer viewer : viewers)
 			this.add_viewer(viewer);
+		return viewers.length;
 	}
 
 	protected void add_viewer(Viewer viewer) {
