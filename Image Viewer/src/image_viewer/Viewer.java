@@ -126,7 +126,7 @@ public class Viewer extends JPanel {
 		y -= image_corner_y;
 		x *= original.getWidth() / (double) width;
 		y *= original.getHeight() / (double) height;
-		
+
 		if (this.last_blobs.size() != 0) {
 
 			double closest_point = this.last_blobs.get(0).compute_average_point().distanceSq(new Point(x, y));
@@ -140,7 +140,7 @@ public class Viewer extends JPanel {
 			}
 
 		}
-		
+
 		if (closest_index == -1 && (x < 0 || y < 0 || x > original.getWidth() || y > original.getHeight())) {
 			return;
 		}
@@ -154,7 +154,6 @@ public class Viewer extends JPanel {
 				this.last_blobs.add(new Blob(point));
 			} else {
 				// Adding to an existing blob:
-				System.out.println("Adding with closest blob");
 				this.last_blobs.get(closest_index).set_count(this.last_blobs.get(closest_index).get_count() + 1);
 			}
 		} else {
@@ -174,8 +173,22 @@ public class Viewer extends JPanel {
 	 * repaints this component.
 	 */
 	public void point_out_blobs() {
-		last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
+		this.last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
 		this.repaint();
+	}
+
+	/**
+	 * Manually counts the blobs without a repaint. Mainly used for when this viewer
+	 * is added to a window and needs to get an initial blob count.
+	 * 
+	 * @return the number of blobs.
+	 */
+	public int count_blobs() {
+		this.last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
+		int total_count = 0;
+		for (Blob b : this.last_blobs)
+			total_count += b.get_count();
+		return total_count;
 	}
 
 	public boolean set_image(String path) throws IOException {

@@ -39,15 +39,19 @@ public class BatchCountManager extends Thread {
 		try {
 			this.initialize();
 		} catch (IOException e) {
-			System.err.println("Error initializing BatchCounter");
+			System.err.println("Error initializing Batch Counter");
 			return;
 		}
 
 		File[] files = ImageLoader.get_all_valid_files_in_dir(this.directory);
 		this.total_files = files.length;
 		for (int i = 0; i < files.length; i++) {
+
+			// Setting object fields for this image to count:
 			this.current_file = files[i].getName();
 			this.current_index = i;
+
+			// Loading the files into memory in the worker thread:
 			synchronized (this) {
 				// This is where we do all of the work in splitting the image file and loading
 				// it.
@@ -56,17 +60,84 @@ public class BatchCountManager extends Thread {
 				this.viewers_available = true;
 			}
 
-			// Waiting for the user to count every time except the last time.
+			// Breaking out if the process is stopped:
+			if (!keep_going)
+				break;
+
+			// Waiting for an outside process to call get_next_viewers()
 			boolean waiting = true;
 			while (waiting && keep_going)
 				synchronized (this) {
 					waiting = this.viewers_available;
 				}
 
+			// Breaking out if the process is stopped:
 			if (!keep_going)
-				return;
+				break;
 		}
 		this.stop_process();
+	}
+
+	/**
+	 * Saves the counts of this.current_file to the output file.
+	 */
+	public void save_previous_counts(Viewer[] prev_viewers) {
+		// Writing the previous viewer's counts to the file:
+		int[] counts = new int[prev_viewers.length];
+		for (int n = 0; n < counts.length; n++) {
+			counts[n] = prev_viewers[n].get_blob_count();
+		}
+		this.sort_counts(prev_viewers, counts);
+		this.write_file_line(this.current_file, counts);
+	}
+	
+	void sort_counts(Viewer keys[], int counts[]) 
+    { 
+        int n = counts.length; 
+  
+        // One by one move boundary of unsorted sub-array 
+        for (int i = 0; i < n-1; i++) 
+        { 
+            // Find the minimum element in unsorted array 
+            int min_idx = i; 
+            for (int j = i+1; j < n; j++) 
+                if (keys[j].KEY.compareTo(keys[min_idx].KEY) < 0) 
+                    min_idx = j; 
+  
+            // Swap the found minimum element with the first 
+            // element 
+            int temp = counts[min_idx]; 
+            counts[min_idx] = counts[i]; 
+            counts[i] = temp; 
+        } 
+    } 
+
+	/**
+	 * Gets the next set of viewers to count. If the next set is not ready yet,
+	 * hangs until it is ready.
+	 * 
+	 * @return an array of Viewer objects.
+	 */
+	public Viewer[] get_next_viewers() {
+
+		// Waiting for the next set of viewers to be available:
+		boolean waiting = false;
+		while (!waiting && keep_going)
+			synchronized (this) {
+				waiting = this.viewers_available;
+			}
+
+		// If the process is stopped before the next viewers are loaded:
+		if (!this.keep_going)
+			return null;
+
+		// Telling the batch counter to start loading the next viewers:
+		synchronized (this) {
+			this.viewers_available = false;
+		}
+
+		// Returning the next viewers:
+		return this.next_viewers;
 	}
 
 	/**
@@ -77,14 +148,17 @@ public class BatchCountManager extends Thread {
 	public void initialize() throws IOException {
 		this.config = new IMFFile(config_file);
 
+		// Creating the output file if it has to be created:
 		if (!this.output_file.exists()) {
 			this.output_file.createNewFile();
 			return;
 		}
+		// Making sure the contents of the output file is nothing
 		BufferedWriter writer = new BufferedWriter(new FileWriter(this.output_file, false));
 		writer.write("");
 		writer.close();
 
+		// Initializing state variables:
 		this.keep_going = true;
 		this.total_files = -1;
 		this.current_index = -1;
@@ -116,60 +190,34 @@ public class BatchCountManager extends Thread {
 	}
 
 	/**
-	 * Gets the next set of viewers to count.
+	 * Gets the status of the batch count manager.
 	 * 
-	 * @return an array of Viewer objects.
+	 * @return the number of files left to count. If not counting, returns -1.
 	 */
-	public Viewer[] get_next_viewers() {
-		// Waiting for viewers to be available:
-		boolean waiting = true;
-		
-		// Writing current viewer counts to file:
-		int[] counts = new int[this.next_viewers.length];
-		for (int i = 0; i < counts.length; i++)
-			counts[i] = this.next_viewers[i].get_blob_count();
-		// Writing the blob counts to the file
-		this.write_file_line(this.get_file_name(), counts);
+	public int get_status() {
+		if (!this.keep_going)
+			return -1;
+		return this.total_files - this.current_index;
+	}
 
-		// Waiting for the run method of this thread to load the viewers:
-		WorkingBar.set_text("Waiting for image to load.");
-		WorkingBar.start_working();
-		while (waiting && keep_going)
-			synchronized (this) {
-				waiting = !this.viewers_available;
-				if (waiting == false)
-					this.viewers_available = false;
-			}
-		WorkingBar.set_text("Loaded Image.");
-		WorkingBar.stop_working();
-
-		if (!keep_going)
-			return null;
-
-		System.out.println("Returning next viewers");
-		return this.next_viewers;
+	public int get_total_files() {
+		return this.total_files;
 	}
 
 	public void stop_process() {
-		System.out.println("Stopping batch load process.");
+		System.out.println("All done loading files, counts still may need to be recorded. Output counts at: "
+				+ output_file.getAbsolutePath());
 		this.keep_going = false;
 		this.current_index = this.total_files;
 	}
 
-	public boolean in_progress() {
-		return this.keep_going;
-	}
-
-	public boolean is_on_last() {
-		return this.current_index == this.total_files - 1;
-	}
-
-	public String get_output_path_string() {
-		return this.output_file.getAbsolutePath();
-	}
-
-	public String get_file_name() {
-		return this.current_file;
+	/**
+	 * TODO: Make this test the input parameters
+	 * 
+	 * @return
+	 */
+	public boolean test_parameters() {
+		return true;
 	}
 
 }

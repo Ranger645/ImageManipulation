@@ -4,15 +4,6 @@ Purpose: The original purpose of this project was to develop a
 	It allows the user to create an image filter line and specify
 	blob count parameters for automated blob counting in images.
 
-1. You need to change the entire purpose of this program. It needs to go 
-	from counting everything automatically to be user assisted. The user
-	assist comes from left and right clicking on the counts to add and delete
-	them respectively. When you hover over a blob, it should highlight the 
-	edges of the blob.
-	a. Implement basic add/delete blob function.
-	b. Add secondary process to batch counting that allows for user 
-		intervention.
-	c. Make sure everything is added properly to the output CSV file.
 2. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original

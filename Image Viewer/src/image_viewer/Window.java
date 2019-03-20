@@ -226,19 +226,21 @@ public class Window extends JFrame {
 				// Getting information about which files/directories to use:
 				Thread batch_start_thread = new Thread() {
 					public void run() {
+
+						// Getting the batch count parameters:
 						File[] output = BatchCountConfigWindow.show_config_dialog(self);
-						if (output == null)
+						if (output == null && self.close_all_images())
 							return;
 
+						// Setting the batch count parameters and testing them:
 						batch_manager = new BatchCountManager(output[0], output[1], output[2]);
-						batch_manager.start();
-
-						if (self.close_all_images())
-							self.add_viewers(batch_manager.get_next_viewers());
-						else {
+						if (!batch_manager.test_parameters()) {
 							batch_manager.stop_process();
-							batch_manager = null;
+							return;
 						}
+
+						// Starting the batch process and adding the viewers to this window:
+						batch_manager.start();
 					}
 				};
 				batch_start_thread.start();
@@ -252,25 +254,22 @@ public class Window extends JFrame {
 				// Saving the viewers if the user does decide to move on:
 				Thread batch_next_thread = new Thread() {
 					public void run() {
-						Viewer[] viewers = get_viewers();
+						
+						Viewer[] prev_viewers = self.get_viewers();
 
-						if (batch_manager != null && (batch_manager.in_progress() || batch_manager.is_on_last())
-								&& self.close_all_images()) {
-
-							// Getting the next viewers from the batch manager and adding them to this
-							// window.
-							Viewer[] arr = batch_manager.get_next_viewers();
-							System.out.println("Viewer Number = " + arr.length);
-							self.add_viewers(arr);
-
-							// If the batch manager
-							if (batch_manager.is_on_last()) {
-								WorkingBar.set_text("Batch count completed, output saved to "
-										+ batch_manager.get_output_path_string());
-								repaint();
-							}
-						} else if (batch_manager == null || !batch_manager.in_progress())
+						if (batch_manager != null && self.close_all_images()) {
+							
+							// Not saving the first time this is called:
+							if (batch_manager.get_status() != batch_manager.get_total_files())
+								batch_manager.save_previous_counts(prev_viewers);
+							
+							// Not adding any if the batch counter is all done loading:
+							if (batch_manager.get_status() >= 0)
+								self.add_viewers(batch_manager.get_next_viewers());
+							
+						} else if (batch_manager == null || batch_manager.get_status() < 0)
 							System.err.println("No batch process running.");
+						
 					}
 				};
 				batch_next_thread.start();
@@ -280,10 +279,7 @@ public class Window extends JFrame {
 		batch_stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (batch_manager != null && batch_manager.in_progress())
-					batch_manager.stop_process();
-				else
-					System.err.println("No batch process running.");
+
 			}
 		});
 		batch_menu.add(batch_start);
@@ -336,11 +332,16 @@ public class Window extends JFrame {
 		if (viewer == null)
 			return;
 
+		// Inserting the new tab into the first spot:
 		image_viewers.add(viewer);
-		tabs.addTab(viewer.KEY, viewer);
+		tabs.insertTab(viewer.KEY, null, viewer, null, 0);
+		tabs.setSelectedIndex(0);
 
 		// Adding the GUI controller to the card layout
 		gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
+		
+		// Setting the initial blob count:
+		viewer.count_blobs();
 	}
 
 	/**
