@@ -3,7 +3,15 @@ Purpose: The original purpose of this project was to develop a
 	batch cell counter for counting 'blobs' in various images.
 	It allows the user to create an image filter line and specify
 	blob count parameters for automated blob counting in images.
-
+	
+1. Get the assisted batch count function ready for a real user by:
+	a. Graying out buttons that should not be used at certain times
+	b. Adding progress bar integration
+	c. Make sure if an error occurs when opening a file, it doesn't panic.
+		i) Make sure it alerts the user
+		ii) make sure it doesn't corrupt any already counted data.
+	c. Test with real data.
+	d. Still have count update problem when a layer is not viewed.
 2. Complete the Image Menu functionality.
 	a. Split: creates 3 new images that are the red, green, and blue 
 		layers of the original

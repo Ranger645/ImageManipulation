@@ -42,6 +42,7 @@ public class Window extends JFrame {
 	private JTabbedPane tabs = new JTabbedPane();
 	private JPanel gui_filter_managers = null;
 	private Window self = null;
+	private JMenuItem batch_start, batch_next, batch_stop;
 
 	public CounterManager counter_manager = null;
 
@@ -197,7 +198,6 @@ public class Window extends JFrame {
 			}
 		});
 		Map<String, Counter> all_counters = this.counter_manager.getCounters();
-		ButtonGroup counter_group = new ButtonGroup();
 		for (String s : all_counters.keySet()) {
 			JRadioButtonMenuItem current_counter_menu_item = new JRadioButtonMenuItem(s);
 			current_counter_menu_item.addActionListener(new ActionListener() {
@@ -207,9 +207,6 @@ public class Window extends JFrame {
 					repaint();
 				}
 			});
-			counter_group.add(current_counter_menu_item);
-			if (s.equals("Default"))
-				counter_group.setSelected(current_counter_menu_item.getModel(), true);
 
 			algo_menu.add(current_counter_menu_item);
 		}
@@ -218,7 +215,7 @@ public class Window extends JFrame {
 		algo_menu.add(clear_count);
 
 		JMenu batch_menu = new JMenu("Batch");
-		JMenuItem batch_start = new JMenuItem("Start");
+		batch_start = new JMenuItem("Start");
 		batch_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -241,12 +238,20 @@ public class Window extends JFrame {
 
 						// Starting the batch process and adding the viewers to this window:
 						batch_manager.start();
+						
+						// Enabling proper UI:
+						batch_start.setEnabled(false);
+						batch_next.setEnabled(true);
+						batch_stop.setEnabled(true);
+
 					}
 				};
+
+				// Starting the batch manager start thread:
 				batch_start_thread.start();
 			}
 		});
-		JMenuItem batch_next = new JMenuItem("Next");
+		batch_next = new JMenuItem("Next");
 		batch_next.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -254,34 +259,54 @@ public class Window extends JFrame {
 				// Saving the viewers if the user does decide to move on:
 				Thread batch_next_thread = new Thread() {
 					public void run() {
-						
+
 						Viewer[] prev_viewers = self.get_viewers();
 
 						if (batch_manager != null && self.close_all_images()) {
-							
+
 							// Not saving the first time this is called:
 							if (batch_manager.get_status() != batch_manager.get_total_files())
 								batch_manager.save_previous_counts(prev_viewers);
-							
+
 							// Not adding any if the batch counter is all done loading:
-							if (batch_manager.get_status() >= 0)
+							if (batch_manager.get_status() >= 0) {
+								WorkingBar.set_text("Loading next image, please wait...");
+								WorkingBar.start_working();
+								batch_next.setEnabled(false);
 								self.add_viewers(batch_manager.get_next_viewers());
-							
-						} else if (batch_manager == null || batch_manager.get_status() < 0)
-							System.err.println("No batch process running.");
-						
+								batch_next.setEnabled(true);
+								WorkingBar.set_text("Finished loading, edit counts then hit batch->next to continue.");
+								WorkingBar.stop_working();
+							}
+
+						} else if (batch_manager == null || batch_manager.get_status() < 0) {
+							System.err.println("Batch Process finished running");
+							batch_manager.stop_process();
+							batch_start.setEnabled(true);
+							batch_stop.setEnabled(false);
+							batch_next.setEnabled(false);
+						}
+
 					}
 				};
 				batch_next_thread.start();
 			}
 		});
-		JMenuItem batch_stop = new JMenuItem("Stop");
+		batch_next.setEnabled(false);
+		batch_stop = new JMenuItem("Stop");
 		batch_stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				if (batch_manager == null)
+					return;
+				
+				batch_manager.stop_process();
+				batch_start.setEnabled(true);
+				batch_stop.setEnabled(false);
+				batch_next.setEnabled(false);
 			}
 		});
+		batch_stop.setEnabled(false);
 		batch_menu.add(batch_start);
 		batch_menu.add(batch_next);
 		batch_menu.add(batch_stop);
@@ -334,12 +359,11 @@ public class Window extends JFrame {
 
 		// Inserting the new tab into the first spot:
 		image_viewers.add(viewer);
-		tabs.insertTab(viewer.KEY, null, viewer, null, 0);
-		tabs.setSelectedIndex(0);
+		tabs.addTab(viewer.KEY, viewer);
 
 		// Adding the GUI controller to the card layout
 		gui_filter_managers.add(viewer.gui_controller, viewer.KEY);
-		
+
 		// Setting the initial blob count:
 		viewer.count_blobs();
 	}
@@ -412,6 +436,11 @@ public class Window extends JFrame {
 	public void add_filter(String name) {
 		this.get_selected_viewer().add_filter(FilterManager.get_filter(name));
 		this.repaint();
+	}
+
+	public void set_enabled_ui(boolean enable) {
+		System.out.println("Setting ui enable state to: " + enable);
+		this.getJMenuBar().setEnabled(enable);
 	}
 
 }
