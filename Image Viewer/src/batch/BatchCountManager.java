@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 import files.IMFFile;
 import files.ImageLoader;
@@ -25,7 +26,7 @@ public class BatchCountManager extends Thread {
 	private boolean keep_going = false;
 	private int current_index = -1;
 	private int total_files = -1;
-	private String current_file = "";
+	private String current_file = "", previous_file = "";
 
 	public BatchCountManager(File folder_to_count, File config_file, File output_file) {
 		this.directory = folder_to_count;
@@ -44,6 +45,7 @@ public class BatchCountManager extends Thread {
 		}
 
 		File[] files = ImageLoader.get_all_valid_files_in_dir(this.directory);
+		Arrays.sort(files);
 		this.total_files = files.length;
 		for (int i = 0; i < files.length; i++) {
 
@@ -70,12 +72,16 @@ public class BatchCountManager extends Thread {
 				synchronized (this) {
 					waiting = this.viewers_available;
 				}
+			this.previous_file = this.current_file;
 
 			// Breaking out if the process is stopped:
 			if (!keep_going)
 				break;
 		}
 		this.stop_process();
+		System.out.println("All done loading files, counts still may need to be recorded. Output counts at: "
+				+ output_file.getAbsolutePath());
+		System.out.println("Batch count thread terminated.");
 	}
 
 	/**
@@ -88,16 +94,14 @@ public class BatchCountManager extends Thread {
 			counts[n] = prev_viewers[n].get_blob_count();
 		}
 		this.sort_counts(prev_viewers, counts);
-		this.write_file_line(this.current_file, counts);
+		this.write_file_line(this.previous_file, counts);
 	}
 	
-	void sort_counts(Viewer keys[], int counts[]) 
-    { 
+	void sort_counts(Viewer keys[], int counts[]) { 
         int n = counts.length; 
   
         // One by one move boundary of unsorted sub-array 
-        for (int i = 0; i < n-1; i++) 
-        { 
+        for (int i = 0; i < n-1; i++) {
             // Find the minimum element in unsorted array 
             int min_idx = i; 
             for (int j = i+1; j < n; j++) 
@@ -105,12 +109,16 @@ public class BatchCountManager extends Thread {
                     min_idx = j; 
   
             // Swap the found minimum element with the first 
-            // element 
-            int temp = counts[min_idx]; 
+            // element
+            Viewer temp_key = keys[min_idx];
+            int temp = counts[min_idx];
+            keys[min_idx] = keys[i];
             counts[min_idx] = counts[i]; 
-            counts[i] = temp; 
-        } 
-    } 
+            keys[i] = temp_key;
+            counts[i] = temp;
+            
+        }
+    }
 
 	/**
 	 * Gets the next set of viewers to count. If the next set is not ready yet,
@@ -178,8 +186,9 @@ public class BatchCountManager extends Thread {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(this.output_file, true));
 			writer.write(file_name);
-			for (int count : counts)
+			for (int count : counts) {
 				writer.write("," + count);
+			}
 			writer.write("\n");
 			writer.close();
 		} catch (IOException e) {
@@ -205,8 +214,6 @@ public class BatchCountManager extends Thread {
 	}
 
 	public void stop_process() {
-		System.out.println("All done loading files, counts still may need to be recorded. Output counts at: "
-				+ output_file.getAbsolutePath());
 		this.keep_going = false;
 		this.current_index = this.total_files;
 	}

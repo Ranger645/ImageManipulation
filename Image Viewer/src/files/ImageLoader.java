@@ -2,10 +2,12 @@ package files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import image_viewer.Viewer;
+import image_viewer.WorkingBar;
 import tools.ImageConverter;
 
 public class ImageLoader {
@@ -32,6 +34,9 @@ public class ImageLoader {
 		// Now that we know we can load the file, we need to determine how to load it:
 		String type = to_load.getAbsolutePath().substring(to_load.getAbsolutePath().lastIndexOf("."));
 		if (type.endsWith("nd2")) {
+			WorkingBar.set_text("Loading image: " + to_load.getAbsolutePath());
+			WorkingBar.start_working();
+			
 			// Splitting the nd2 into layers and putting them into temp/
 			ImageConverter.nd2_split(to_load);
 
@@ -43,16 +48,23 @@ public class ImageLoader {
 			Viewer[] viewers = new Viewer[layer_number];
 
 			// Adding the viewers to the array:
-			for (int i = 0; i < layer_number; i++) {
-				File layer_image = temp_folder.listFiles()[i];
-				String name = temp_folder.listFiles()[i].getName();
-				viewers[i] = new Viewer(name.substring(0, name.indexOf(".")));
+			File[] files = temp_folder.listFiles();
+			String[] file_names = new String[files.length];
+			for (int i = 0; i < files.length; i++)
+				file_names[i] = files[i].getName();
+			Arrays.sort(file_names);
+			
+			for (int i = 0; i < file_names.length; i++) {
+				viewers[i] = new Viewer(file_names[i].substring(0, file_names[i].indexOf(".")));
 				try {
 					viewers[i].set_image(temp_folder.listFiles()[i]);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
+			
+			WorkingBar.set_text("");
+			WorkingBar.stop_working();
 
 			return viewers;
 		} else {

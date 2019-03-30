@@ -2,6 +2,8 @@ package files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -115,7 +117,9 @@ public class IMFFile {
 	 * @throws IOException
 	 */
 	public IMFFile(File to_read) throws IOException {
+		System.out.print("Loading " + to_read.getAbsolutePath() + ".imf {");
 		Document imf_file = IMFFile.parse(to_read);
+		System.out.println("} Finished Parsing.");
 		if (imf_file == null)
 			throw new IOException();
 		this.imf_file = imf_file;
@@ -149,6 +153,7 @@ public class IMFFile {
 	 * @param viewers - the array of viewers to apply to.
 	 */
 	public void apply_to_viewers(Viewer[] viewers) {
+		System.out.println("Applying imf to viewers...");
 		Element imf_root = (Element) this.imf_file.getFirstChild();
 		NodeList images = imf_root.getChildNodes();
 
@@ -198,10 +203,13 @@ public class IMFFile {
 
 				// Applying the counter and filters to the viewer if the index i is less than
 				// the number of viewers:
+				System.out.println("Entering edit mode.");
+				viewers[image_index].set_edit_mode(true);
 				if (image_index < viewers.length) {
 					viewers[image_index].clear_filters();
 
 					// Applying the filter list:
+					List<Filter> filters = new ArrayList<Filter>();
 					for (int n = 0; n < filter_list.getChildNodes().getLength(); n++)
 						if (filter_list.getChildNodes().item(n).getNodeType() == Node.ELEMENT_NODE) {
 							Element filter_element = (Element) filter_list.getChildNodes().item(n);
@@ -212,26 +220,34 @@ public class IMFFile {
 							// Now we have to get its contents:
 							String contents = filter_element.getTextContent();
 
-							Filter filter = FilterManager.get_filter(filter_name);
-
-							// Adding the filter to the viewer:
-							viewers[image_index].add_filter(filter);
-
-							// Setting the parameters of the viewer:
-							filter.set_params(contents);
+							// Storing this filter to add later:
+							filters.add(FilterManager.get_filter(filter_name));
+							filters.get(filters.size() - 1).set_params(contents);
 						}
+					// Adding all the filters to the viewer:
+					System.out.println("Adding filters.");
+					viewers[image_index].add_filters(filters);
 
 					// Applying the counter:
+					System.out.println("Applying the counter.");
 					Counter counter_object = counter_manager.get_new_counter(counter.getAttribute("type"));
 					counter_object.decode(counter.getTextContent().split(","));
 					viewers[image_index].set_counter(counter_object);
-					viewers[image_index].point_out_blobs();
+					System.out.println("Exiting edit mode.");
+					viewers[image_index].set_edit_mode(false);
 					image_index++;
 				} else if (strong_names) {
 					System.err.printf("Image %s is not currently open.\n", image_name);
 				}
 			}
 		}
+		
+		// Viewers must now have their filters updated and their counts updated.
+		for (Viewer viewer : viewers) {
+			viewer.point_out_blobs();
+			viewer.repaint();
+		}
+		System.out.println("Finished applying to viewers.");
 	}
 
 	/**

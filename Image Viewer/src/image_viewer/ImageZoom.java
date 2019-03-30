@@ -20,6 +20,8 @@ public class ImageZoom implements MouseWheelListener, MouseListener, MouseMotion
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		dzoom += -e.getWheelRotation();
+		this.mouse_x = e.getX();
+		this.mouse_y = e.getY();
 		this.image.repaint();
 	}
 

@@ -36,7 +36,7 @@ import filters.FilterManager;
 
 public class Window extends JFrame {
 
-	private static final String TITLE = "IMAGE VIEWER v1.1";
+	private static final String TITLE = "Cell Counter v1.2";
 
 	private List<Viewer> image_viewers = new ArrayList<>();
 	private JTabbedPane tabs = new JTabbedPane();
@@ -70,15 +70,16 @@ public class Window extends JFrame {
 		openoption.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				open_image();
+				if (self.tabs.getTabCount() == 0 || self.close_all_images())
+					open_image();
 			}
 		});
-		JMenuItem closeoption = new JMenuItem("Close Current");
+		JMenuItem closeoption = new JMenuItem("Close");
 		closeoption.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (image_viewers.size() > 0)
-					close_current_image();
+					self.close_all_images();
 				else
 					System.err.println("No images are currently open.");
 			}
@@ -189,14 +190,6 @@ public class Window extends JFrame {
 				image_viewers.get(tabs.getSelectedIndex()).point_out_blobs();
 			}
 		});
-		JMenuItem clear_count = new JMenuItem("Clear Count");
-		clear_count.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				image_viewers.get(tabs.getSelectedIndex()).last_blobs.clear();
-				image_viewers.get(tabs.getSelectedIndex()).repaint();
-			}
-		});
 		Map<String, Counter> all_counters = this.counter_manager.getCounters();
 		for (String s : all_counters.keySet()) {
 			JRadioButtonMenuItem current_counter_menu_item = new JRadioButtonMenuItem(s);
@@ -212,7 +205,6 @@ public class Window extends JFrame {
 		}
 		algo_menu.addSeparator();
 		algo_menu.add(blob_count);
-		algo_menu.add(clear_count);
 
 		JMenu batch_menu = new JMenu("Batch");
 		batch_start = new JMenuItem("Start");
@@ -238,12 +230,14 @@ public class Window extends JFrame {
 
 						// Starting the batch process and adding the viewers to this window:
 						batch_manager.start();
-						
+
 						// Enabling proper UI:
 						batch_start.setEnabled(false);
 						batch_next.setEnabled(true);
 						batch_stop.setEnabled(true);
-
+						
+						// Triggering the first image:
+						batch_next.doClick();
 					}
 				};
 
@@ -299,7 +293,7 @@ public class Window extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (batch_manager == null)
 					return;
-				
+
 				batch_manager.stop_process();
 				batch_start.setEnabled(true);
 				batch_stop.setEnabled(false);
@@ -380,24 +374,33 @@ public class Window extends JFrame {
 		Viewer[] viewers = ImageLoader.load_image(image);
 		this.add_viewers(viewers);
 
+		this.setTitle(TITLE + "   " + image.getAbsolutePath());
 		this.repaint();
 	}
 
 	public void open_image() {
 		File to_open = FileUtilities.showFileOpenDialog(new File("res"), this);
-		if (to_open == null) {
+		if (to_open == null)
 			System.out.println("No file to open selected.");
-		}
 
 		this.open_image(to_open);
 	}
 
+	/**
+	 * Returns true if they are closed and false if they are not closed. Returns
+	 * true if there are no images open.
+	 * 
+	 * @return a boolean
+	 */
 	public boolean close_all_images() {
-		if (JOptionPane.showConfirmDialog(this, "That operation will close all currently open images. Continue?",
-				"Closing Viewers", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
-			return false;
-		while (tabs.getTabCount() > 0)
-			this.close_current_image();
+		if (tabs.getTabCount() > 0) {
+			if (JOptionPane.showConfirmDialog(this, "That operation will close all currently open images. Continue?",
+					"Closing Viewers", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+				return false;
+			while (tabs.getTabCount() > 0)
+				this.close_current_image();
+		}
+		this.setTitle(TITLE);
 		return true;
 	}
 

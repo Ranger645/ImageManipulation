@@ -31,6 +31,7 @@ public class Viewer extends JPanel {
 
 	private ImageZoom image_transform;
 	private boolean continuous_blob_finding = true;
+	private boolean edit_mode = false;
 	public int zoom_percentage = 100;
 
 	public List<Blob> last_blobs;
@@ -48,6 +49,7 @@ public class Viewer extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				point_out_blobs();
+				repaint();
 			}
 		});
 
@@ -59,7 +61,9 @@ public class Viewer extends JPanel {
 	}
 
 	public void paint(Graphics g) {
+
 		if (image_steps.size() > 0) {
+
 			// Constructing the image to draw:
 			BufferedImage to_draw = null;
 			int display_mode = this.gui_controller.get_selected_display_mode();
@@ -67,7 +71,8 @@ public class Viewer extends JPanel {
 				to_draw = image_steps.get(image_steps.size() - 1);
 			else if (display_mode == 1) // Display the original image:
 				to_draw = image_steps.get(0);
-			else { // Display the image provided by the counting function:
+			else {
+				// Display the image provided by the counting function:
 				to_draw = this.counter.get_display_image(this.gui_controller.get_selected_display_mode_key());
 
 				// If the image that the counter supplies is null, then draw the filtered image.
@@ -89,10 +94,9 @@ public class Viewer extends JPanel {
 
 			// Drawing the image to draw on the graphics:
 			g.drawImage(to_draw, x, y, width, height, null);
-			int blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
+			this.last_blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
 
 			// Updating the text display with the count:
-			this.last_blob_count = blob_count;
 			WorkingBar.set_text(String.format("Counted %d blobs.\n", this.last_blob_count));
 		}
 	}
@@ -172,8 +176,26 @@ public class Viewer extends JPanel {
 	 * repaints this component.
 	 */
 	public void point_out_blobs() {
-		this.last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
-		this.repaint();
+		if (!this.edit_mode) {
+			System.out.println("Pointing out blobs...");
+			this.last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
+			this.compute_blob_count();
+		}
+	}
+
+	/**
+	 * Computes the blob count from the last counted blobs
+	 * 
+	 * @return the count of the blobs or -1 if the list of calculated blobs is null.
+	 */
+	public int compute_blob_count() {
+		if (this.last_blobs != null) {
+			this.last_blob_count = 0;
+			for (Blob b : this.last_blobs)
+				this.last_blob_count += b.get_count();
+			return this.last_blob_count;
+		}
+		return this.last_blob_count = -1;
 	}
 
 	/**
@@ -250,6 +272,11 @@ public class Viewer extends JPanel {
 		filters.add(f);
 		this.compute_filters();
 	}
+	
+	public void add_filters(List<Filter> filters) {
+		this.filters.addAll(filters);
+		this.compute_filters();
+	}
 
 	public void add_filter(Filter f, int index) {
 		filters.add(index, f);
@@ -299,6 +326,10 @@ public class Viewer extends JPanel {
 
 	public int get_blob_count() {
 		return this.last_blob_count;
+	}
+
+	public void set_edit_mode(boolean edit_mode) {
+		this.edit_mode = edit_mode;
 	}
 
 }

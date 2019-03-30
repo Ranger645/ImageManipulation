@@ -26,7 +26,8 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 
 	private final String TITLE = "Batch Count Configuration";
 	private static String folderDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "nd2_batch_test";
-	private static String configFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "nd2_imf_test1.imf";
+	private static String configFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator
+			+ "nd2_application_testing" + File.separator + "cell_line_test_3_layer.imf";
 	private static String outputFileDefault = Window.DOCUMENTS.getAbsolutePath() + File.separator + "output.csv";
 	private static BatchCountConfigWindow staticWindow = null;
 
@@ -67,7 +68,7 @@ public class BatchCountConfigWindow extends JFrame implements ActionListener {
 			File count_folder = new File(staticWindow.get_folder_name());
 			File config_file = new File(staticWindow.get_config_file_name());
 			File output_file = new File(staticWindow.get_output_file_name());
-			
+
 			if (count_folder.exists() && count_folder.isDirectory() && config_file.exists()) {
 				String config = "";
 				System.out.println("Paramamters passed tests.");
