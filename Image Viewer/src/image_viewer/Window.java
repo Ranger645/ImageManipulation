@@ -235,9 +235,12 @@ public class Window extends JFrame {
 						batch_start.setEnabled(false);
 						batch_next.setEnabled(true);
 						batch_stop.setEnabled(true);
-						
+
 						// Triggering the first image:
 						batch_next.doClick();
+
+						// Disabling the batch next button once the process is kicked off.
+						batch_next.setEnabled(false);
 					}
 				};
 
@@ -291,13 +294,15 @@ public class Window extends JFrame {
 		batch_stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (batch_manager == null)
-					return;
+				if (self.close_all_images()) {
+					if (batch_manager == null)
+						return;
 
-				batch_manager.stop_process();
-				batch_start.setEnabled(true);
-				batch_stop.setEnabled(false);
-				batch_next.setEnabled(false);
+					batch_manager.stop_process();
+					batch_start.setEnabled(true);
+					batch_stop.setEnabled(false);
+					batch_next.setEnabled(false);
+				}
 			}
 		});
 		batch_stop.setEnabled(false);

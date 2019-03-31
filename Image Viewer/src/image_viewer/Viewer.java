@@ -80,21 +80,19 @@ public class Viewer extends JPanel {
 					to_draw = image_steps.get(image_steps.size() - 1);
 			}
 
-			// Doing the math on the zoom and offsets:
-			int zoom_diff = this.image_transform.get_zoom_differential();
-			this.zoom_percentage += zoom_diff;
-			double offset_multiplier = this.zoom_percentage / (this.zoom_percentage - zoom_diff);
-			this.image_transform.apply_offset_multiplier(offset_multiplier);
+//			this.zoom_percentage += zoom_diff;
+//			double offset_multiplier = this.zoom_percentage / (this.zoom_percentage - zoom_diff);
+//			this.image_transform.apply_offset_multiplier(offset_multiplier);
 
-			int width = (int) (to_draw.getWidth() * (this.zoom_percentage / 100.0));
-			int height = (int) (to_draw.getHeight() * (this.zoom_percentage / 100.0));
-			Point offset_point = image_transform.get_image_position();
-			int x = this.getWidth() / 2 - width / 2 + offset_point.x;
-			int y = this.getHeight() / 2 - height / 2 + offset_point.y;
+			int[] draw_point = this.image_transform.update(this.getWidth(), this.getHeight());
+			double zoom_percentage = this.image_transform.get_zoom_percentage();
+			int width = (int) (to_draw.getWidth() * (zoom_percentage / 100.0));
+			int height = (int) (to_draw.getHeight() * (zoom_percentage / 100.0));
 
 			// Drawing the image to draw on the graphics:
-			g.drawImage(to_draw, x, y, width, height, null);
-			this.last_blob_count = Utilites.paint_blob_centers(this.last_blobs, g, x, y, zoom_percentage);
+			g.drawImage(to_draw, draw_point[0], draw_point[1], width, height, null);
+			this.last_blob_count = Utilites.paint_blob_centers(this.last_blobs, g, draw_point[0], draw_point[1],
+					(int) zoom_percentage);
 
 			// Updating the text display with the count:
 			WorkingBar.set_text(String.format("Counted %d blobs.\n", this.last_blob_count));
@@ -119,16 +117,6 @@ public class Viewer extends JPanel {
 
 		int closest_index = -1;
 		BufferedImage original = image_steps.get(image_steps.size() - 1);
-		int width = (int) (original.getWidth() * (this.zoom_percentage / 100.0));
-		int height = (int) (original.getHeight() * (this.zoom_percentage / 100.0));
-		Point offset_point = image_transform.get_image_position();
-		int image_corner_x = this.getWidth() / 2 - width / 2 + offset_point.x;
-		int image_corner_y = this.getHeight() / 2 - height / 2 + offset_point.y;
-
-		x -= image_corner_x;
-		y -= image_corner_y;
-		x *= original.getWidth() / (double) width;
-		y *= original.getHeight() / (double) height;
 
 		if (this.last_blobs.size() != 0) {
 
@@ -177,7 +165,6 @@ public class Viewer extends JPanel {
 	 */
 	public void point_out_blobs() {
 		if (!this.edit_mode) {
-			System.out.println("Pointing out blobs...");
 			this.last_blobs = counter.count(this.image_steps.get(image_steps.size() - 1));
 			this.compute_blob_count();
 		}
@@ -272,7 +259,7 @@ public class Viewer extends JPanel {
 		filters.add(f);
 		this.compute_filters();
 	}
-	
+
 	public void add_filters(List<Filter> filters) {
 		this.filters.addAll(filters);
 		this.compute_filters();
@@ -330,6 +317,14 @@ public class Viewer extends JPanel {
 
 	public void set_edit_mode(boolean edit_mode) {
 		this.edit_mode = edit_mode;
+	}
+	
+	public int get_image_width() {
+		return this.image_steps.get(0).getWidth();
+	}
+	
+	public int get_image_height() {
+		return this.image_steps.get(0).getHeight();
 	}
 
 }

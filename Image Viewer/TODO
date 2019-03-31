@@ -3,11 +3,10 @@ Purpose: The original purpose of this project was to develop a
 	batch cell counter for counting 'blobs' in various images.
 	It allows the user to create an image filter line and specify
 	blob count parameters for automated blob counting in images.
-	
+
 Issues:
-	- Zoom functionality is not correct, Should zoom relative to mouse position, not the center.
-	- Make it so that when images are loaded, they are zoomed to the full screen
-	- Zooming too much causes an error.
+	- Opening a nd2 file manually needs to trigger the progress bar
+	- Cause the batch count status indicators to be displayed in the progress bar.
 	- Stop button is still very untested.
 
 1. Complete the Image Menu functionality.
