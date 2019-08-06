@@ -241,6 +241,7 @@ public class Window extends JFrame {
 
 						// Disabling the batch next button once the process is kicked off.
 						batch_next.setEnabled(false);
+						
 					}
 				};
 
